@@ -82,7 +82,7 @@ fn reveal_in_finder(path: &Path) {
         {
             let win_path = p.to_string_lossy().replace('/', "\\");
             let _ = std::process::Command::new("explorer.exe")
-                .arg(format!("/select,\"{}\"", win_path))
+                .arg(format!("/select,{}", win_path))
                 .status();
         }
     });
@@ -139,7 +139,9 @@ fn set_file_immutable_macos(path: &Path, immutable: bool) {
 }
 
 fn get_seed_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let home = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .unwrap_or_else(|_| ".".to_string());
     PathBuf::from(home).join(".zip_zip_lock_seed")
 }
 
@@ -159,7 +161,9 @@ fn load_seed() -> Result<String> {
 }
 
 fn get_vault_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let home = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .unwrap_or_else(|_| ".".to_string());
     PathBuf::from(home).join(".zip_zip_lock_vault")
 }
 

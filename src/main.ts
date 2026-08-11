@@ -25,6 +25,68 @@ function val(id: string) {
   return (document.querySelector(id) as HTMLInputElement | HTMLTextAreaElement)?.value?.trim() ?? "";
 }
 
+function getPaths(id: string): string[] {
+  const input = document.querySelector(id) as HTMLInputElement;
+  if (!input) return [];
+  const data = input.getAttribute("data-paths");
+  if (data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) {}
+  }
+  const value = input.value?.trim();
+  return value ? [value] : [];
+}
+
+function clearPaths(id: string) {
+  const input = document.querySelector(id) as HTMLInputElement;
+  if (input) {
+    input.value = "";
+    input.removeAttribute("data-paths");
+    input.removeAttribute("data-output-path");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+function handleSelectedPaths(input: HTMLInputElement, paths: string[], type: string) {
+  if (paths.length > 0) {
+    input.setAttribute("data-paths", JSON.stringify(paths));
+    if (paths.length > 1) {
+      const lang = currentLanguage;
+      const isZip = type === "zip-any" || type === "file-zip" || input.id === "zip-source";
+      const defaultName = isZip ? "arsiv" : "kilitli_dosyalar";
+      const promptMsg = lang === "tr" 
+        ? "Çoklu dosya seçildi. Lütfen oluşturulacak ortak dosya/arşiv için bir isim girin:" 
+        : "Multiple files selected. Please enter a name for the output archive/locked file:";
+      let archiveName = prompt(promptMsg, defaultName);
+      if (!archiveName) {
+        input.removeAttribute("data-paths");
+        input.removeAttribute("data-output-path");
+        input.value = "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        return;
+      }
+      archiveName = archiveName.trim().replace(/[/\\?%*:|"<>. ]/g, "_");
+      if (!archiveName) archiveName = defaultName;
+      
+      const firstPath = paths[0];
+      const separator = firstPath.includes("\\") ? "\\" : "/";
+      const lastIdx = firstPath.lastIndexOf(separator);
+      const parentDir = lastIdx !== -1 ? firstPath.substring(0, lastIdx) : "";
+      const ext = isZip ? ".zip" : ".zzl";
+      const outputName = `${archiveName}${ext}`;
+      const outputPath = parentDir ? `${parentDir}${separator}${outputName}` : outputName;
+      
+      input.setAttribute("data-output-path", outputPath);
+      input.value = `${paths.length} adet dosya seçildi (${outputName})`;
+    } else {
+      input.removeAttribute("data-output-path");
+      input.value = paths[0];
+    }
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
 // ----------------------------------------------------
 // 100% ROBUST BULLETPROOF COPY TO CLIPBOARD
 // ----------------------------------------------------
@@ -307,10 +369,11 @@ window.addEventListener("DOMContentLoaded", () => {
   // Tauri Invoke Handlers
   document.querySelector("#btn-create-zip")?.addEventListener("click", () =>
     runButtonAction("#btn-create-zip", async () => {
-      const source_path = val("#zip-source");
-      const res = await invoke<ApiResponse>("create_zip", { req: { source_path, output_zip_path: "" } });
+      const source_paths = getPaths("#zip-source");
+      const output_zip_path = (document.querySelector("#zip-source") as HTMLInputElement).getAttribute("data-output-path") || "";
+      const res = await invoke<ApiResponse>("create_zip", { req: { source_paths, output_zip_path } });
       if (res.success) {
-        (document.querySelector("#zip-source") as HTMLInputElement).value = "";
+        clearPaths("#zip-source");
         if (res.output_path) {
           (document.querySelector("#unzip-source") as HTMLInputElement).value = res.output_path;
         }
@@ -335,12 +398,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector("#btn-lock")?.addEventListener("click", () =>
     runButtonAction("#btn-lock", async () => {
-      const input_path = val("#lock-input");
+      const input_paths = getPaths("#lock-input");
+      const output_path = (document.querySelector("#lock-input") as HTMLInputElement).getAttribute("data-output-path") || "";
       const passphrase = val("#lock-pass");
       if (!passphrase) return translations[currentLanguage].passphrase_empty_error;
-      const res = await invoke<ApiResponse>("lock_file", { req: { input_path, output_path: "", passphrase } });
+      const res = await invoke<ApiResponse>("lock_file", { req: { input_paths, output_path, passphrase } });
       if (res.success) {
-        (document.querySelector("#lock-input") as HTMLInputElement).value = "";
+        clearPaths("#lock-input");
         (document.querySelector("#lock-pass") as HTMLInputElement).value = "";
         if (res.output_path) {
           (document.querySelector("#unlock-input") as HTMLInputElement).value = res.output_path;
@@ -352,10 +416,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector("#btn-lock-bio")?.addEventListener("click", () =>
     runButtonAction("#btn-lock-bio", async () => {
-      const input_path = val("#lock-input");
-      const res = await invoke<ApiResponse>("lock_file", { req: { input_path, output_path: "", passphrase: "__TOUCH_ID_SEED__" } });
+      const input_paths = getPaths("#lock-input");
+      const output_path = (document.querySelector("#lock-input") as HTMLInputElement).getAttribute("data-output-path") || "";
+      const res = await invoke<ApiResponse>("lock_file", { req: { input_paths, output_path, passphrase: "__TOUCH_ID_SEED__" } });
       if (res.success) {
-        (document.querySelector("#lock-input") as HTMLInputElement).value = "";
+        clearPaths("#lock-input");
         (document.querySelector("#lock-pass") as HTMLInputElement).value = "";
         if (res.output_path) {
           (document.querySelector("#unlock-input") as HTMLInputElement).value = res.output_path;
@@ -592,7 +657,7 @@ window.addEventListener("DOMContentLoaded", () => {
       if (!input) return;
 
       try {
-        let selectedPath: string | null = null;
+        let selectedPath: string | string[] | null = null;
         const lang = currentLanguage;
 
         if (type === "dir") {
@@ -604,7 +669,7 @@ window.addEventListener("DOMContentLoaded", () => {
         } else if (type === "file") {
           selectedPath = await open({
             directory: false,
-            multiple: false,
+            multiple: true,
             title: translations[lang].dialog_btn_file
           });
         } else if (type === "zip-any") {
@@ -615,7 +680,7 @@ window.addEventListener("DOMContentLoaded", () => {
           });
           selectedPath = await open({
             directory: isFolder,
-            multiple: false,
+            multiple: !isFolder,
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "lock-any") {
@@ -626,7 +691,7 @@ window.addEventListener("DOMContentLoaded", () => {
           });
           selectedPath = await open({
             directory: isFolder,
-            multiple: false,
+            multiple: !isFolder,
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "file-zip") {
@@ -646,8 +711,8 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         if (selectedPath) {
-          input.value = selectedPath;
-          input.dispatchEvent(new Event("input", { bubbles: true }));
+          const paths = Array.isArray(selectedPath) ? selectedPath : [selectedPath];
+          handleSelectedPaths(input, paths, type || "");
         }
       } catch (err) {
         setOutput(`${translations[currentLanguage].error_prefix}${String(err)}`);
@@ -677,11 +742,11 @@ window.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".box-card").forEach((c) => c.classList.remove("drag-hover"));
         const paths = event.payload.paths;
         if (paths && paths.length > 0) {
-          const droppedPath = paths[0];
           const input = card.querySelector(".drop-zone input[type='text']") as HTMLInputElement;
+          const dropZone = card.querySelector(".drop-zone") as HTMLElement;
+          const type = dropZone ? dropZone.getAttribute("data-type") : "";
           if (input) {
-            input.value = droppedPath;
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            handleSelectedPaths(input, paths, type || "");
           }
         }
       }

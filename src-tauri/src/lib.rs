@@ -28,7 +28,7 @@ struct BiometricStatus {
 
 #[derive(Deserialize)]
 struct ZipRequest {
-    source_path: String,
+    source_paths: Vec<String>,
     output_zip_path: String,
 }
 
@@ -40,7 +40,7 @@ struct UnzipRequest {
 
 #[derive(Deserialize)]
 struct LockRequest {
-    input_path: String,
+    input_paths: Vec<String>,
     output_path: String,
     passphrase: String,
 }
@@ -285,6 +285,60 @@ fn create_zip_impl(source_path: &str, output_zip_path: &str) -> Result<String> {
     Ok(format!("ZIP oluşturuldu: {}", out_path.to_string_lossy()))
 }
 
+fn create_zip_from_files(files: &[String], output_zip_path: &str) -> Result<String> {
+    if files.is_empty() {
+        return Err(anyhow!("Hiçbir dosya seçilmedi"));
+    }
+    let out_path = PathBuf::from(output_zip_path);
+    let out_path = get_unique_path(out_path);
+
+    let out_file = File::create(&out_path)?;
+    let mut zip = ZipWriter::new(out_file);
+    let options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Deflated)
+        .compression_level(Some(9))
+        .unix_permissions(0o755);
+
+    for path_str in files {
+        let file_path = PathBuf::from(path_str);
+        if file_path.exists() {
+            if file_path.is_file() {
+                let name = file_path
+                    .file_name()
+                    .ok_or_else(|| anyhow!("Dosya adı çözümlenemedi"))?
+                    .to_string_lossy()
+                    .to_string();
+                zip.start_file(name, options)?;
+                let mut f = File::open(&file_path)?;
+                std::io::copy(&mut f, &mut zip)?;
+            } else {
+                let base_dir = file_path.parent().unwrap_or(&file_path);
+                for entry in WalkDir::new(&file_path) {
+                    let entry = entry?;
+                    let path = entry.path();
+                    if path == base_dir {
+                        continue;
+                    }
+                    let name = zip_path(base_dir, path)?;
+                    if path.is_file() {
+                        zip.start_file(name, options)?;
+                        let mut f = File::open(path)?;
+                        std::io::copy(&mut f, &mut zip)?;
+                    } else if !name.is_empty() {
+                        zip.add_directory(name, options)?;
+                    }
+                }
+            }
+        }
+    }
+
+    zip.finish()?;
+    tag_file(&out_path, 1);
+    let _ = reveal_in_finder(&out_path);
+    let out_path_str = out_path.to_string_lossy().to_string();
+    Ok(format!("ZIP oluşturuldu: {}", out_path_str))
+}
+
 fn unzip_impl(zip_path: &str, output_dir: &str) -> Result<(String, PathBuf)> {
     let src = PathBuf::from(zip_path);
     if !src.exists() {
@@ -461,13 +515,17 @@ fn decrypt_bytes(data: &[u8], passphrase: &str) -> Result<(Vec<u8>, bool, Option
     }
 }
 
-fn lock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Result<(String, String)> {
-    let src = PathBuf::from(input_path);
-    if !src.exists() {
-        return Err(anyhow!("Dosya veya klasör bulunamadı: {}", input_path));
+fn lock_file_impl(input_paths: &[String], output_path: &str, passphrase: &str) -> Result<(String, String)> {
+    if input_paths.is_empty() {
+        return Err(anyhow!("Hiçbir dosya veya klasör seçilmedi"));
     }
 
-    let is_dir = src.is_dir();
+    let src = PathBuf::from(&input_paths[0]);
+    if !src.exists() {
+        return Err(anyhow!("Dosya veya klasör bulunamadı: {}", input_paths[0]));
+    }
+
+    let is_dir = input_paths.len() > 1 || src.is_dir();
 
     let resolved_passphrase = if passphrase == "__TOUCH_ID_SEED__" {
         if let Ok(seed) = load_seed() {
@@ -492,12 +550,20 @@ fn lock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Resu
 
     let mut out_path = if output_path.trim().is_empty() {
         let mut auto_path = src.clone();
-        let mut ext = auto_path.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default();
-        if !ext.is_empty() {
-            ext.push_str(".zzl");
-            auto_path.set_extension(ext);
+        if input_paths.len() > 1 {
+            if let Some(parent) = src.parent() {
+                auto_path = parent.join("locked_files.zzl");
+            } else {
+                auto_path = PathBuf::from("locked_files.zzl");
+            }
         } else {
-            auto_path.set_extension("zzl");
+            let mut ext = auto_path.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default();
+            if !ext.is_empty() {
+                ext.push_str(".zzl");
+                auto_path.set_extension(ext);
+            } else {
+                auto_path.set_extension("zzl");
+            }
         }
         auto_path
     } else {
@@ -506,14 +572,20 @@ fn lock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Resu
 
     out_path = get_unique_path(out_path);
 
-    let data = if is_dir {
+    let data = if input_paths.len() > 1 {
         let temp_zip = std::env::temp_dir().join(format!("temp_lock_{}.zip", rand::random::<u32>()));
-        create_zip_impl(input_path, &temp_zip.to_string_lossy())?;
+        let _ = create_zip_from_files(input_paths, &temp_zip.to_string_lossy())?;
+        let bytes = fs::read(&temp_zip)?;
+        let _ = fs::remove_file(&temp_zip);
+        bytes
+    } else if src.is_dir() {
+        let temp_zip = std::env::temp_dir().join(format!("temp_lock_{}.zip", rand::random::<u32>()));
+        create_zip_impl(&input_paths[0], &temp_zip.to_string_lossy())?;
         let bytes = fs::read(&temp_zip)?;
         let _ = fs::remove_file(&temp_zip);
         bytes
     } else {
-        fs::read(input_path)?
+        fs::read(&src)?
     };
 
     let mut uuid_bytes = [0u8; 16];
@@ -529,17 +601,22 @@ fn lock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Resu
     // Lock the zzl file so it cannot be deleted/trashed without auth
     set_file_immutable_macos(&out_path, true);
 
-    // Delete the original source file/folder
-    if is_dir {
-        let _ = fs::remove_dir_all(&src);
-    } else {
-        let _ = fs::remove_file(&src);
+    // Delete the original source files
+    for path_str in input_paths {
+        let p = PathBuf::from(path_str);
+        if p.exists() {
+            if p.is_dir() {
+                let _ = fs::remove_dir_all(&p);
+            } else {
+                let _ = fs::remove_file(&p);
+            }
+        }
     }
 
     tag_file(&out_path, 2); // Tag with Red (index 2) for locked files!
     reveal_in_finder(&out_path);
     let out_path_str = out_path.to_string_lossy().to_string();
-    Ok((format!("Dosya kilitlendi: {}", out_path_str), out_path_str))
+    Ok((format!("Dosyalar kilitlendi: {}", out_path_str), out_path_str))
 }
 
 fn unlock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Result<(String, String)> {
@@ -614,10 +691,24 @@ fn unlock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Re
 
 #[tauri::command]
 fn create_zip(req: ZipRequest) -> ApiResponse {
-    match create_zip_impl(&req.source_path, &req.output_zip_path) {
+    if req.source_paths.is_empty() {
+        return ApiResponse {
+            success: false,
+            message: "Hiçbir dosya seçilmedi".to_string(),
+            output_path: None,
+        };
+    }
+    
+    let res = if req.source_paths.len() > 1 {
+        create_zip_from_files(&req.source_paths, &req.output_zip_path)
+    } else {
+        create_zip_impl(&req.source_paths[0], &req.output_zip_path)
+    };
+
+    match res {
         Ok(message) => {
-            let src = PathBuf::from(&req.source_path);
             let out_zip = if req.output_zip_path.trim().is_empty() {
+                let src = PathBuf::from(&req.source_paths[0]);
                 let mut auto_path = src.clone();
                 auto_path.set_extension("zip");
                 auto_path
@@ -657,7 +748,7 @@ fn unzip_file(req: UnzipRequest) -> ApiResponse {
 
 #[tauri::command]
 fn lock_file(req: LockRequest) -> ApiResponse {
-    match lock_file_impl(&req.input_path, &req.output_path, &req.passphrase) {
+    match lock_file_impl(&req.input_paths, &req.output_path, &req.passphrase) {
         Ok((message, out_path)) => ApiResponse {
             success: true,
             message,

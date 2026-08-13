@@ -68,9 +68,9 @@ fn zip_path(src_dir: &Path, path: &Path) -> Result<String> {
 
 
 fn reveal_in_finder(path: &Path) {
-    let p = path.to_path_buf();
+    let p = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        std::thread::sleep(std::time::Duration::from_millis(150));
         #[cfg(target_os = "macos")]
         {
             let _ = std::process::Command::new("open")
@@ -667,9 +667,7 @@ fn unlock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Re
     }
 
     tag_file(&out_path, 4); // Tag with Blue (index 4) for unlocked files/folders!
-    if !is_dir {
-        reveal_in_finder(&out_path);
-    }
+    reveal_in_finder(&out_path);
 
     // Unlock the zzl file first so it can be deleted
     set_file_immutable_macos(&src, false);

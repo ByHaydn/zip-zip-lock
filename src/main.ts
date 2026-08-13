@@ -431,6 +431,34 @@ window.addEventListener("DOMContentLoaded", () => {
   // Apply initial language configuration
   applyLanguage(currentLanguage);
 
+  // Initialize Language Switcher Buttons
+  const btnLangEn = document.querySelector("#btn-lang-en") as HTMLButtonElement;
+  const btnLangTr = document.querySelector("#btn-lang-tr") as HTMLButtonElement;
+
+  const updateLangUI = (lang: string) => {
+    if (lang === "en") {
+      btnLangEn?.classList.add("active");
+      btnLangTr?.classList.remove("active");
+    } else {
+      btnLangTr?.classList.add("active");
+      btnLangEn?.classList.remove("active");
+    }
+  };
+
+  if (btnLangEn && btnLangTr) {
+    btnLangEn.addEventListener("click", () => {
+      applyLanguage("en");
+      updateLangUI("en");
+    });
+    btnLangTr.addEventListener("click", () => {
+      applyLanguage("tr");
+      updateLangUI("tr");
+    });
+    
+    // Set initial active state
+    updateLangUI(currentLanguage);
+  }
+
   // Tauri Invoke Handlers
   document.querySelector("#btn-create-zip")?.addEventListener("click", () =>
     runButtonAction("#btn-create-zip", async () => {
@@ -800,7 +828,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: false,
             multiple: true,
-            filters: [{ name: "Tüm Dosyalar", extensions: ["*"] }],
+            filters: [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
             title: translations[lang].dialog_btn_file
           });
         } else if (type === "zip-any") {
@@ -812,7 +840,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
-            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["*"] }],
+            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "lock-any") {
@@ -824,7 +852,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
-            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["*"] }],
+            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "file-zip") {

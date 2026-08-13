@@ -571,3 +571,44 @@ pre::-webkit-scrollbar-thumb:hover {
 .modal-actions .btn-primary:hover {
   background: #059669;
 }
+
+/* Language Switcher */
+.lang-switcher {
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .lang-switcher {
+    margin-left: 0;
+    margin-top: 12px;
+  }
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-btn:hover {
+  color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lang-btn.active {
+  background: #10b981; /* Premium green */
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}

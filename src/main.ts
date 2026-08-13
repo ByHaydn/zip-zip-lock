@@ -785,4 +785,30 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // Check biometric support on startup and disable Touch ID buttons if unsupported
+  invoke<BiometricStatus>("biometric_status").then((status) => {
+    if (!status.supported) {
+      const bioLockBtn = document.querySelector("#btn-lock-bio") as HTMLButtonElement;
+      const bioUnlockBtn = document.querySelector("#btn-unlock-bio") as HTMLButtonElement;
+      
+      if (bioLockBtn) {
+        bioLockBtn.disabled = true;
+        bioLockBtn.style.opacity = "0.5";
+        bioLockBtn.style.cursor = "not-allowed";
+        bioLockBtn.title = currentLanguage === "tr" 
+          ? "Cihazınızda biyometrik doğrulama donanımı bulunamadı." 
+          : "Biometric authentication hardware not found on your device.";
+      }
+      
+      if (bioUnlockBtn) {
+        bioUnlockBtn.disabled = true;
+        bioUnlockBtn.style.opacity = "0.5";
+        bioUnlockBtn.style.cursor = "not-allowed";
+        bioUnlockBtn.title = currentLanguage === "tr" 
+          ? "Cihazınızda biyometrik doğrulama donanımı bulunamadı." 
+          : "Biometric authentication hardware not found on your device.";
+      }
+    }
+  }).catch((e) => console.error("Biyometrik durum kontrolü başarısız:", e));
 });

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zip Zip Loop</title>
+    <title>Zip Zip Lock</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
   <body>
@@ -20,153 +20,149 @@
             </svg>
           </div>
           <div class="brand-text">
-            <h1 data-i18n="title">Zip Zip Lock</h1>
-            <p data-i18n="subtitle">Dijital dosya cebi • Güvenli ZIP ve Kilit Sistemi</p>
+            <h1>Zip Zip Lock</h1>
+            <p>Digital file pocket • Secure ZIP and Lock System</p>
           </div>
-        </div>
-        <div class="lang-switcher">
-          <button id="btn-lang-en" class="lang-btn">EN</button>
-          <button id="btn-lang-tr" class="lang-btn">TR</button>
         </div>
       </header>
 
       <div class="dashboard-grid">
-        <!-- Box 1: ZIP Oluştur -->
+        <!-- Box 1: Create ZIP -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">📦</span>
-            <h2 data-i18n="box1_title">ZIP Oluştur</h2>
+            <h2>Create ZIP</h2>
           </div>
           <div class="box-body">
             <div class="drop-zone" data-target="#zip-source" data-type="zip-any">
               <span class="drop-zone-icon">📥</span>
-              <span class="drop-zone-text" data-i18n="box1_desc">Dosya veya Klasör Sürükle / Seç</span>
-              <input id="zip-source" type="text" placeholder="Yol seçilmedi..." data-i18n-placeholder="box1_placeholder" readonly />
+              <span class="drop-zone-text">Drag & Drop File or Folder / Select</span>
+              <input id="zip-source" type="text" placeholder="No path selected..." readonly />
             </div>
-            <button id="btn-create-zip" class="btn-primary" data-i18n="box1_btn">ZIP Paketle</button>
+            <button id="btn-create-zip" class="btn-primary">ZIP Compress</button>
           </div>
         </section>
 
-        <!-- Box 2: ZIP Aç -->
+        <!-- Box 2: Open ZIP -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">📂</span>
-            <h2 data-i18n="box2_title">ZIP Aç</h2>
+            <h2>Open ZIP</h2>
           </div>
           <div class="box-body">
             <div class="drop-zone" data-target="#unzip-source" data-type="file-zip">
               <span class="drop-zone-icon">📥</span>
-              <span class="drop-zone-text" data-i18n="box2_desc">ZIP Arşivi Sürükle / Seç</span>
-              <input id="unzip-source" type="text" placeholder="Yol seçilmedi..." data-i18n-placeholder="box2_placeholder" readonly />
+              <span class="drop-zone-text">Drag & Drop ZIP Archive / Select</span>
+              <input id="unzip-source" type="text" placeholder="No path selected..." readonly />
             </div>
-            <button id="btn-unzip" class="btn-primary" data-i18n="box2_btn">ZIP Aç (Ayıkla)</button>
+            <button id="btn-unzip" class="btn-primary">Extract ZIP</button>
           </div>
         </section>
 
-        <!-- Box 3: Dosya/Klasör Kilitle -->
+        <!-- Box 3: Lock File / Folder -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">🔒</span>
-            <h2 data-i18n="box3_title">Dosya / Klasör Kilitle</h2>
+            <h2>Lock File / Folder</h2>
           </div>
           <div class="box-body">
             <div class="drop-zone" data-target="#lock-input" data-type="lock-any">
               <span class="drop-zone-icon">📥</span>
-              <span class="drop-zone-text" data-i18n="box3_desc">Dosya veya Klasör Sürükle / Seç</span>
-              <input id="lock-input" type="text" placeholder="Yol seçilmedi..." data-i18n-placeholder="box3_placeholder" readonly />
+              <span class="drop-zone-text">Drag & Drop File or Folder / Select</span>
+              <input id="lock-input" type="text" placeholder="No path selected..." readonly />
             </div>
             <div class="input-group">
-              <label for="lock-pass" data-i18n="box3_label">Şifreleme Parolası</label>
+              <label for="lock-pass">Encryption Password</label>
               <div style="position: relative; display: flex; align-items: center; width: 100%;">
                 <input id="lock-pass" type="password" placeholder="••••••••" style="padding-right: 70px; width: 100%;" />
                 <div style="position: absolute; right: 8px; display: flex; gap: 6px; align-items: center;">
-                  <button type="button" class="copy-btn" data-target="#lock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Kopyala">
+                  <button type="button" class="copy-btn" data-target="#lock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Copy">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   </button>
-                  <button type="button" class="toggle-password" data-target="#lock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Göster/Gizle">
+                  <button type="button" class="toggle-password" data-target="#lock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Show/Hide">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon" style="pointer-events: none;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
               </div>
-              <a href="#" id="link-generate-pass" data-i18n="box3_link" style="font-size: 11px; margin-top: 4px; display: inline-block; color: #34d399; text-decoration: underline;">(12 Kelime Kurtarma Şifresi Üret)</a>
+              <a href="#" id="link-generate-pass" style="font-size: 11px; margin-top: 4px; display: inline-block; color: #34d399; text-decoration: underline;">(Generate 12-Word Recovery Password)</a>
             </div>
             <div class="btn-row">
-              <button id="btn-lock" class="btn-secondary" data-i18n="box3_btn_lock">Parola ile Kilitle</button>
-              <button id="btn-lock-bio" class="btn-primary" data-i18n="box3_btn_lock_bio">Touch ID ile Kilitle</button>
+              <button id="btn-lock" class="btn-secondary">Lock with Password</button>
+              <button id="btn-lock-bio" class="btn-primary">Lock with Touch ID</button>
             </div>
           </div>
         </section>
 
-        <!-- Box 4: Kilit Aç -->
+        <!-- Box 4: Unlock -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">🔓</span>
-            <h2 data-i18n="box4_title">Kilit Aç</h2>
+            <h2>Unlock</h2>
           </div>
           <div class="box-body">
             <div class="drop-zone" data-target="#unlock-input" data-type="file-zzl">
               <span class="drop-zone-icon">📥</span>
-              <span class="drop-zone-text" data-i18n="box4_desc">Kilitli Dosya (.zzl) Sürükle / Seç</span>
-              <input id="unlock-input" type="text" placeholder="Yol seçilmedi..." data-i18n-placeholder="box4_placeholder" readonly />
+              <span class="drop-zone-text">Drag & Drop Locked File (.zzl) / Select</span>
+              <input id="unlock-input" type="text" placeholder="No path selected..." readonly />
             </div>
             <div class="input-group">
-              <label for="unlock-pass" data-i18n="box4_label">Şifre Çözme Parolası</label>
+              <label for="unlock-pass">Decryption Password</label>
               <div style="position: relative; display: flex; align-items: center; width: 100%;">
                 <input id="unlock-pass" type="password" placeholder="••••••••" style="padding-right: 70px; width: 100%;" />
                 <div style="position: absolute; right: 8px; display: flex; gap: 6px; align-items: center;">
-                  <button type="button" class="copy-btn" data-target="#unlock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Kopyala">
+                  <button type="button" class="copy-btn" data-target="#unlock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Copy">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   </button>
-                  <button type="button" class="toggle-password" data-target="#unlock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Göster/Gizle">
+                  <button type="button" class="toggle-password" data-target="#unlock-pass" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Show/Hide">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon" style="pointer-events: none;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
               </div>
             </div>
             <div class="btn-row">
-              <button id="btn-unlock" class="btn-secondary" data-i18n="box4_btn_unlock">Parola ile Çöz</button>
-              <button id="btn-unlock-bio" class="btn-primary" data-i18n="box4_btn_unlock_bio">Touch ID ile Çöz</button>
+              <button id="btn-unlock" class="btn-secondary">Unlock with Password</button>
+              <button id="btn-unlock-bio" class="btn-primary">Unlock with Touch ID</button>
             </div>
           </div>
         </section>
 
-        <!-- Box 5: Biyometrik -->
+        <!-- Box 5: Biometric Protection -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">🧬</span>
-            <h2 data-i18n="box5_title">Biyometrik Koruma</h2>
+            <h2>Biometric Protection</h2>
           </div>
           <div class="box-body flex-column">
-            <p class="box-desc" data-i18n="box5_desc">Touch ID / Windows Hello biyometrik doğrulama sistem entegrasyonu.</p>
+            <p class="box-desc">Touch ID / Windows Hello biometric verification system integration.</p>
             <div class="btn-row">
-              <button id="btn-bio-status" class="btn-outline" data-i18n="box5_btn_status">Sistem Kontrolü</button>
-              <button id="btn-bio-auth" class="btn-primary" data-i18n="box5_btn_auth">Mock Doğrulama</button>
+              <button id="btn-bio-status" class="btn-outline">System Check</button>
+              <button id="btn-bio-auth" class="btn-primary">Mock Auth</button>
             </div>
           </div>
         </section>
 
-        <!-- Box 6: 12 Kelime Kurtarma -->
+        <!-- Box 6: Recovery Phrase -->
         <section class="box-card">
           <div class="box-header">
             <span class="box-icon">🔑</span>
-            <h2 data-i18n="box6_title">Kurtarma Cümlesi</h2>
+            <h2>Recovery Phrase</h2>
           </div>
           <div class="box-body flex-column">
-            <p class="box-desc" data-i18n="box6_desc">Cihaz anahtarını kurtarmak için 12 kelimelik tohum cümlesi (BIP39).</p>
+            <p class="box-desc">12-word seed phrase to recover device key (BIP39).</p>
             <div style="position: relative; width: 100%; display: flex; flex-direction: column;">
-              <textarea id="seed-input" placeholder="12 kelimeyi aralarında boşluk bırakarak yazın veya tohum kelimeler üretin..." data-i18n-placeholder="box6_placeholder" rows="3" style="width: 100%; padding-right: 70px; box-sizing: border-box;"></textarea>
+              <textarea id="seed-input" placeholder="Type 12 words separated by spaces or generate seed words..." rows="3" style="width: 100%; padding-right: 70px; box-sizing: border-box;"></textarea>
               <div style="position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; align-items: center;">
-                <button type="button" class="copy-btn" data-target="#seed-input" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Kopyala">
+                <button type="button" class="copy-btn" data-target="#seed-input" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Copy">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                 </button>
-                <button type="button" id="toggle-seed-visibility" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Göster/Gizle">
+                <button type="button" id="toggle-seed-visibility" style="background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; justify-content: center; outline: none; padding: 4px; width: auto;" title="Show/Hide">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon" style="pointer-events: none;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-              <button id="btn-generate-seed" class="btn-outline" data-i18n="box6_btn_generate">Kelime Üret</button>
-              <button id="btn-verify-seed" class="btn-primary" data-i18n="box6_btn_verify">Kaydet / Doğrula</button>
+              <button id="btn-generate-seed" class="btn-outline">Generate Words</button>
+              <button id="btn-verify-seed" class="btn-primary">Save / Verify</button>
             </div>
           </div>
         </section>
@@ -178,20 +174,20 @@
           <span class="console-dot red"></span>
           <span class="console-dot yellow"></span>
           <span class="console-dot green"></span>
-          <span class="console-title" data-i18n="console_title">Sistem Çıktısı (Konsol)</span>
+          <span class="console-title">System Output (Console)</span>
         </div>
-        <pre id="output" data-i18n="console_ready">Uygulama hazır. Lütfen bir işlem seçin.</pre>
+        <pre id="output">Application ready. Please select an action.</pre>
       </section>
     </main>
 
     <!-- Custom Modal for Prompt -->
     <div id="custom-prompt-modal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
-        <h3 id="prompt-title">Arşiv Adı Girin</h3>
-        <input id="prompt-input" type="text" placeholder="arsiv" />
+        <h3 id="prompt-title">Enter Archive Name</h3>
+        <input id="prompt-input" type="text" placeholder="archive" />
         <div class="modal-actions">
-          <button id="btn-prompt-cancel" class="btn-secondary">İptal</button>
-          <button id="btn-prompt-ok" class="btn-primary">Tamam</button>
+          <button id="btn-prompt-cancel" class="btn-secondary">Cancel</button>
+          <button id="btn-prompt-ok" class="btn-primary">OK</button>
         </div>
       </div>
     </div>

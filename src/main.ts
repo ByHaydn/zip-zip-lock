@@ -2,40 +2,47 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-type ApiResponse = {
+// Types matching Rust API
+interface ApiResponse {
   success: boolean;
   message: string;
   output_path?: string;
-};
+}
 
-type BiometricStatus = {
+interface BiometricStatus {
   platform: string;
   supported: boolean;
   method: string;
   note: string;
-};
-
-const output = () => document.querySelector("#output") as HTMLElement;
-
-function setOutput(message: string) {
-  output().textContent = message;
 }
 
-function val(id: string) {
-  return (document.querySelector(id) as HTMLInputElement | HTMLTextAreaElement)?.value?.trim() ?? "";
+// ----------------------------------------------------
+// UI HELPERS
+// ----------------------------------------------------
+function val(id: string): string {
+  return (document.querySelector(id) as HTMLInputElement | HTMLTextAreaElement)?.value || "";
+}
+
+function setOutput(text: string) {
+  const out = document.querySelector("#output") as HTMLElement;
+  if (out) {
+    out.textContent = text;
+  }
 }
 
 function getPaths(id: string): string[] {
   const input = document.querySelector(id) as HTMLInputElement;
   if (!input) return [];
-  const data = input.getAttribute("data-paths");
-  if (data) {
+  const raw = input.getAttribute("data-paths");
+  if (raw) {
     try {
-      return JSON.parse(data);
-    } catch (e) {}
+      return JSON.parse(raw);
+    } catch (e) {
+      // fallback
+    }
   }
-  const value = input.value?.trim();
-  return value ? [value] : [];
+  const single = input.value;
+  return single ? [single] : [];
 }
 
 function clearPaths(id: string) {
@@ -107,15 +114,12 @@ async function handleSelectedPaths(input: HTMLInputElement, paths: string[], typ
   if (paths.length > 0) {
     input.setAttribute("data-paths", JSON.stringify(paths));
     if (paths.length > 1) {
-      const lang = currentLanguage;
       const isCreate = type === "zip-any" || type === "lock-any" || type === "file" || input.id === "zip-source" || input.id === "lock-input";
       
       if (isCreate) {
         const isZip = type === "zip-any" || type === "file-zip" || input.id === "zip-source";
-        const defaultName = isZip ? "arsiv" : "kilitli_dosyalar";
-        const promptMsg = lang === "tr" 
-          ? "Çoklu dosya seçildi. Lütfen oluşturulacak ortak dosya/arşiv için bir isim girin:" 
-          : "Multiple files selected. Please enter a name for the output archive/locked file:";
+        const defaultName = isZip ? "archive" : "locked_files";
+        const promptMsg = "Multiple files selected. Please enter a name for the output archive/locked file:";
         let archiveName = await showCustomPrompt(promptMsg, defaultName);
         if (!archiveName) {
           input.removeAttribute("data-paths");
@@ -136,13 +140,11 @@ async function handleSelectedPaths(input: HTMLInputElement, paths: string[], typ
         const outputPath = parentDir ? `${parentDir}${separator}${outputName}` : outputName;
         
         input.setAttribute("data-output-path", outputPath);
-        input.value = `${paths.length} adet dosya seçildi (${outputName})`;
+        input.value = `${paths.length} files selected (${outputName})`;
       } else {
         // Unzipping/Unlocking multiple existing files
         input.removeAttribute("data-output-path");
-        input.value = lang === "tr"
-          ? `${paths.length} adet dosya seçildi`
-          : `${paths.length} files selected`;
+        input.value = `${paths.length} files selected`;
       }
     } else {
       input.removeAttribute("data-output-path");
@@ -185,188 +187,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 // ----------------------------------------------------
-// LOCALIZATION / MULTI-LANGUAGE SYSTEM
-// ----------------------------------------------------
-const getSystemLanguage = (): string => {
-  const stored = localStorage.getItem("lang");
-  if (stored) return stored;
-  // Automatically detect system/browser language
-  const browserLang = (navigator.language || "en").split("-")[0].toLowerCase();
-  return browserLang === "tr" ? "tr" : "en"; // Default to English for all other nations!
-};
-
-let currentLanguage = getSystemLanguage();
-
-const translations: Record<string, Record<string, string>> = {
-  tr: {
-    title: "Zip Zip Lock",
-    subtitle: "Dijital dosya cebi • Güvenli ZIP ve Kilit Sistemi",
-    // Box 1
-    box1_title: "ZIP Oluştur",
-    box1_desc: "Dosya veya Klasör Sürükle / Seç",
-    box1_placeholder: "Yol seçilmedi...",
-    box1_btn: "ZIP Paketle",
-    // Box 2
-    box2_title: "ZIP Aç",
-    box2_desc: "ZIP Arşivi Sürükle / Seç",
-    box2_placeholder: "Yol seçilmedi...",
-    box2_btn: "ZIP Aç (Ayıkla)",
-    // Box 3
-    box3_title: "Dosya / Klasör Kilitle",
-    box3_desc: "Dosya veya Klasör Sürükle / Seç",
-    box3_placeholder: "Yol seçilmedi...",
-    box3_label: "Şifreleme Parolası",
-    box3_link: "(12 Kelime Kurtarma Şifresi Üret)",
-    box3_btn_lock: "Parola ile Kilitle",
-    box3_btn_lock_bio: "Touch ID ile Kilitle",
-    // Box 4
-    box4_title: "Kilit Aç",
-    box4_desc: "Kilitli Dosya (.zzl) Sürükle / Seç",
-    box4_placeholder: "Yol seçilmedi...",
-    box4_label: "Şifre Çözme Parolası",
-    box4_btn_unlock: "Parola ile Çöz",
-    box4_btn_unlock_bio: "Touch ID ile Çöz",
-    // Box 5
-    box5_title: "Biyometrik Koruma",
-    box5_desc: "Touch ID / Windows Hello biyometrik doğrulama sistem entegrasyonu.",
-    box5_btn_status: "Sistem Kontrolü",
-    box5_btn_auth: "Mock Doğrulama",
-    // Box 6
-    box6_title: "Kurtarma Cümlesi",
-    box6_desc: "Cihaz anahtarını kurtarmak için 12 kelimelik tohum cümlesi (BIP39).",
-    box6_placeholder: "12 kelimeyi aralarında boşluk bırakarak yazın veya tohum kelimeler üretin...",
-    box6_btn_generate: "Kelime Üret",
-    box6_btn_verify: "Kaydet / Doğrula",
-    // Output Box
-    console_title: "Sistem Çıktısı (Konsol)",
-    console_ready: "Uygulama hazır. Lütfen bir işlem seçin.",
-    // Dialogs & Status
-    btn_processing: "İşlem Yapılıyor...",
-    btn_completed: "✅ Tamamlandı",
-    btn_failed: "❌ Başarısız",
-    btn_error: "❌ Hata",
-    error_prefix: "Hata: ",
-    passphrase_empty_error: "❌ Hata: Şifreleme parolası boş olamaz!",
-    decrypt_empty_error: "❌ Hata: Şifre çözme parolası boş olamaz!",
-    seed_empty_error: "❌ Hata: Doğrulanacak kelimeler boş olamaz!",
-    generate_success: "Şifre Üretildi! 🔑 Kopyalamak için yanındaki (📋) simgesine tıklayın.",
-    save_success: "Kaydedildi ve Doğrulandı! ✅",
-    copy_success: "Panoya Kopyalandı! ✅",
-    copy_failed: "Kopyalama başarısız!",
-    copy_tooltip: "Kopyala",
-    toggle_tooltip: "Göster / Gizle",
-    // File Picker dialogs
-    dialog_choose: "Seçim Yapın",
-    dialog_zip_ask: "Sıkıştırmak için klasör mü seçeceksiniz yoksa dosya mı?",
-    dialog_lock_ask: "Kilitlemek için klasör mü seçeceksiniz yoksa dosya mı?",
-    dialog_btn_dir: "Klasör Seç",
-    dialog_btn_file: "Dosya Seç",
-    dialog_title_zip: "ZIP Dosyası Seç",
-    dialog_title_zzl: "Kilitli Dosya Seç"
-  },
-  en: {
-    title: "Zip Zip Lock",
-    subtitle: "Digital file pocket • Secure ZIP and Lock System",
-    // Box 1
-    box1_title: "Create ZIP",
-    box1_desc: "Drag & Drop File or Folder / Select",
-    box1_placeholder: "No path selected...",
-    box1_btn: "ZIP Compress",
-    // Box 2
-    box2_title: "Open ZIP",
-    box2_desc: "Drag & Drop ZIP Archive / Select",
-    box2_placeholder: "No path selected...",
-    box2_btn: "Extract ZIP",
-    // Box 3
-    box3_title: "Lock File / Folder",
-    box3_desc: "Drag & Drop File or Folder / Select",
-    box3_placeholder: "No path selected...",
-    box3_label: "Encryption Password",
-    box3_link: "(Generate 12-Word Recovery Password)",
-    box3_btn_lock: "Lock with Password",
-    box3_btn_lock_bio: "Lock with Touch ID",
-    // Box 4
-    box4_title: "Unlock",
-    box4_desc: "Drag & Drop Locked File (.zzl) / Select",
-    box4_placeholder: "No path selected...",
-    box4_label: "Decryption Password",
-    box4_btn_unlock: "Unlock with Password",
-    box4_btn_unlock_bio: "Unlock with Touch ID",
-    // Box 5
-    box5_title: "Biometric Protection",
-    box5_desc: "Touch ID / Windows Hello biometric verification system integration.",
-    box5_btn_status: "System Check",
-    box5_btn_auth: "Mock Auth",
-    // Box 6
-    box6_title: "Recovery Phrase",
-    box6_desc: "12-word seed phrase to recover device key (BIP39).",
-    box6_placeholder: "Type 12 words separated by spaces or generate seed words...",
-    box6_btn_generate: "Generate Words",
-    box6_btn_verify: "Save / Verify",
-    // Output Box
-    console_title: "System Output (Console)",
-    console_ready: "Application ready. Please select an action.",
-    // Dialogs & Status
-    btn_processing: "Processing...",
-    btn_completed: "✅ Completed",
-    btn_failed: "❌ Failed",
-    btn_error: "❌ Error",
-    error_prefix: "Error: ",
-    passphrase_empty_error: "❌ Error: Encryption password cannot be empty!",
-    decrypt_empty_error: "❌ Error: Decryption password cannot be empty!",
-    seed_empty_error: "❌ Error: Seed words to verify cannot be empty!",
-    generate_success: "Password Generated! 🔑 Click the copy icon (📋) next to the box to copy it.",
-    save_success: "Saved and Verified! ✅",
-    copy_success: "Copied to Clipboard! ✅",
-    copy_failed: "Copy failed!",
-    copy_tooltip: "Copy",
-    toggle_tooltip: "Show / Hide",
-    // File Picker dialogs
-    dialog_choose: "Choose Option",
-    dialog_zip_ask: "Do you want to select a folder or a file to compress?",
-    dialog_lock_ask: "Do you want to select a folder or a file to lock?",
-    dialog_btn_dir: "Select Folder",
-    dialog_btn_file: "Select File",
-    dialog_title_zip: "Select ZIP File",
-    dialog_title_zzl: "Select Locked File"
-  }
-};
-
-function applyLanguage(lang: string) {
-  currentLanguage = lang;
-  localStorage.setItem("lang", lang);
-
-  // Update text contents
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    if (key && translations[lang][key]) {
-      el.textContent = translations[lang][key];
-    }
-  });
-
-  // Update placeholders
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if (key && translations[lang][key]) {
-      (el as HTMLInputElement | HTMLTextAreaElement).placeholder = translations[lang][key];
-    }
-  });
-
-  // Update tooltips dynamically
-  document.querySelectorAll(".copy-btn").forEach((el) => {
-    el.setAttribute("title", translations[lang].copy_tooltip);
-  });
-  document.querySelectorAll(".toggle-password").forEach((el) => {
-    el.setAttribute("title", translations[lang].toggle_tooltip);
-  });
-  const toggleSeedBtn = document.querySelector("#toggle-seed-visibility");
-  if (toggleSeedBtn) {
-    toggleSeedBtn.setAttribute("title", translations[lang].toggle_tooltip);
-  }
-}
-
-// ----------------------------------------------------
-// UI BUTTON RUNNER WITH LOCALIZED LABELS
+// UI BUTTON RUNNER
 // ----------------------------------------------------
 async function runButtonAction(btnSelector: string, action: () => Promise<string>) {
   const button = document.querySelector(btnSelector) as HTMLButtonElement;
@@ -375,7 +196,7 @@ async function runButtonAction(btnSelector: string, action: () => Promise<string
       const message = await action();
       setOutput(message);
     } catch (error) {
-      setOutput(`${translations[currentLanguage].error_prefix}${String(error)}`);
+      setOutput(`Error: ${String(error)}`);
     }
     return;
   }
@@ -383,21 +204,21 @@ async function runButtonAction(btnSelector: string, action: () => Promise<string
   const originalText = button.innerHTML;
   button.disabled = true;
   button.classList.add("btn-loading");
-  button.innerHTML = `<span class="spinner"></span> ${translations[currentLanguage].btn_processing}`;
+  button.innerHTML = `<span class="spinner"></span> Processing...`;
 
   try {
     const message = await action();
     setOutput(message);
 
-    const isSuccess = !message.includes("Hata") && !message.includes("❌") && !message.includes("Error");
+    const isSuccess = !message.includes("Error") && !message.includes("❌");
     if (isSuccess) {
       button.classList.remove("btn-loading");
       button.classList.add("btn-success");
-      button.innerHTML = translations[currentLanguage].btn_completed;
+      button.innerHTML = "✅ Completed";
     } else {
       button.classList.remove("btn-loading");
       button.classList.add("btn-error");
-      button.innerHTML = translations[currentLanguage].btn_failed;
+      button.innerHTML = "❌ Failed";
     }
 
     setTimeout(() => {
@@ -406,10 +227,10 @@ async function runButtonAction(btnSelector: string, action: () => Promise<string
       button.disabled = false;
     }, 2000);
   } catch (error) {
-    setOutput(`${translations[currentLanguage].error_prefix}${String(error)}`);
+    setOutput(`Error: ${String(error)}`);
     button.classList.remove("btn-loading");
     button.classList.add("btn-error");
-    button.innerHTML = translations[currentLanguage].btn_error;
+    button.innerHTML = "❌ Error";
 
     setTimeout(() => {
       button.classList.remove("btn-error");
@@ -428,37 +249,6 @@ const SVGS = {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Apply initial language configuration
-  applyLanguage(currentLanguage);
-
-  // Initialize Language Switcher Buttons
-  const btnLangEn = document.querySelector("#btn-lang-en") as HTMLButtonElement;
-  const btnLangTr = document.querySelector("#btn-lang-tr") as HTMLButtonElement;
-
-  const updateLangUI = (lang: string) => {
-    if (lang === "en") {
-      btnLangEn?.classList.add("active");
-      btnLangTr?.classList.remove("active");
-    } else {
-      btnLangTr?.classList.add("active");
-      btnLangEn?.classList.remove("active");
-    }
-  };
-
-  if (btnLangEn && btnLangTr) {
-    btnLangEn.addEventListener("click", () => {
-      applyLanguage("en");
-      updateLangUI("en");
-    });
-    btnLangTr.addEventListener("click", () => {
-      applyLanguage("tr");
-      updateLangUI("tr");
-    });
-    
-    // Set initial active state
-    updateLangUI(currentLanguage);
-  }
-
   // Tauri Invoke Handlers
   document.querySelector("#btn-create-zip")?.addEventListener("click", () =>
     runButtonAction("#btn-create-zip", async () => {
@@ -478,7 +268,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#btn-unzip")?.addEventListener("click", () =>
     runButtonAction("#btn-unzip", async () => {
       const paths = getPaths("#unzip-source");
-      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      if (paths.length === 0) return "Error: No files selected";
       
       let successCount = 0;
       let failCount = 0;
@@ -499,9 +289,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
       
       if (paths.length > 1) {
-        return currentLanguage === "tr"
-          ? `✅ ${successCount} adet ZIP başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
-          : `✅ ${successCount} ZIP archives extracted successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+        return `✅ ${successCount} ZIP archives extracted successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
       } else {
         return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
       }
@@ -513,7 +301,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const input_paths = getPaths("#lock-input");
       const output_path = (document.querySelector("#lock-input") as HTMLInputElement).getAttribute("data-output-path") || "";
       const passphrase = val("#lock-pass");
-      if (!passphrase) return translations[currentLanguage].passphrase_empty_error;
+      if (!passphrase) return "❌ Error: Encryption password cannot be empty!";
       const res = await invoke<ApiResponse>("lock_file", { req: { input_paths, output_path, passphrase } });
       if (res.success) {
         clearPaths("#lock-input");
@@ -545,10 +333,10 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#btn-unlock")?.addEventListener("click", () =>
     runButtonAction("#btn-unlock", async () => {
       const paths = getPaths("#unlock-input");
-      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      if (paths.length === 0) return "Error: No files selected";
       
       const passphrase = val("#unlock-pass");
-      if (!passphrase) return translations[currentLanguage].decrypt_empty_error;
+      if (!passphrase) return "❌ Error: Decryption password cannot be empty!";
       
       let successCount = 0;
       let failCount = 0;
@@ -570,9 +358,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
       
       if (paths.length > 1) {
-        return currentLanguage === "tr"
-          ? `✅ ${successCount} adet kilit başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
-          : `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+        return `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
       } else {
         return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
       }
@@ -582,7 +368,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#btn-unlock-bio")?.addEventListener("click", () =>
     runButtonAction("#btn-unlock-bio", async () => {
       const paths = getPaths("#unlock-input");
-      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      if (paths.length === 0) return "Error: No files selected";
       
       const bioAuth = await invoke<ApiResponse>("biometric_mock_auth");
       if (!bioAuth.success) {
@@ -609,9 +395,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
       
       if (paths.length > 1) {
-        return currentLanguage === "tr"
-          ? `✅ ${successCount} adet kilit başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
-          : `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+        return `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
       } else {
         return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
       }
@@ -621,11 +405,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#btn-bio-status")?.addEventListener("click", () =>
     runButtonAction("#btn-bio-status", async () => {
       const res = await invoke<BiometricStatus>("biometric_status");
-      if (currentLanguage === "tr") {
-        return `🧬 Platform: ${res.platform}\nDestek: ${res.supported ? "Evet" : "Hayır"}\nYöntem: ${res.method}\nNot: ${res.note}`;
-      } else {
-        return `🧬 Platform: ${res.platform}\nSupport: ${res.supported ? "Yes" : "No"}\nMethod: ${res.method}\nNote: ${res.note}`;
-      }
+      return `🧬 Platform: ${res.platform}\nSupport: ${res.supported ? "Yes" : "No"}\nMethod: ${res.method}\nNote: ${res.note}`;
     })
   );
 
@@ -656,7 +436,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         await copyToClipboard(res.message);
-        return translations[currentLanguage].generate_success;
+        return "Password Generated! 🔑 Click the copy icon (📋) next to the box to copy it.";
       }
       return `❌ ${res.message}`;
     })
@@ -665,12 +445,12 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#btn-verify-seed")?.addEventListener("click", () =>
     runButtonAction("#btn-verify-seed", async () => {
       const phrase = val("#seed-input");
-      if (!phrase) return translations[currentLanguage].seed_empty_error;
+      if (!phrase) return "❌ Error: Seed words to verify cannot be empty!";
       const res = await invoke<ApiResponse>("verify_seed_phrase", { req: { phrase } });
       if (res.success) {
         (document.querySelector("#seed-input") as HTMLTextAreaElement).value = "";
       }
-      return res.success ? translations[currentLanguage].save_success : `❌ ${res.message}`;
+      return res.success ? "Saved and Verified! ✅" : `❌ ${res.message}`;
     })
   );
 
@@ -699,7 +479,7 @@ window.addEventListener("DOMContentLoaded", () => {
           }
         }
         await copyToClipboard(res.message);
-        return translations[currentLanguage].generate_success;
+        return "Password Generated! 🔑 Click the copy icon (📋) next to the box to copy it.";
       }
       return `❌ ${res.message}`;
     });
@@ -754,12 +534,11 @@ window.addEventListener("DOMContentLoaded", () => {
       if (success) {
         // Show success tick feedback
         btn.innerHTML = SVGS.check;
-        const successMsg = translations[currentLanguage].copy_success;
-        setOutput(successMsg);
+        setOutput("Copied to Clipboard! ✅");
 
         // Create and show sliding green tooltip above the button
         const tooltip = document.createElement("span");
-        tooltip.textContent = currentLanguage === "tr" ? "Kopyalandı!" : "Copied!";
+        tooltip.textContent = "Copied!";
         tooltip.style.position = "absolute";
         tooltip.style.bottom = "28px";
         tooltip.style.right = "0px";
@@ -797,7 +576,7 @@ window.addEventListener("DOMContentLoaded", () => {
           btn.innerHTML = SVGS.copy;
         }, 1500);
       } else {
-        setOutput(translations[currentLanguage].copy_failed);
+        setOutput("Copy failed!");
       }
     });
   });
@@ -816,58 +595,57 @@ window.addEventListener("DOMContentLoaded", () => {
 
       try {
         let selectedPath: string | string[] | null = null;
-        const lang = currentLanguage;
 
         if (type === "dir") {
           selectedPath = await open({
             directory: true,
             multiple: false,
-            title: translations[lang].dialog_btn_dir
+            title: "Select Folder"
           });
         } else if (type === "file") {
           selectedPath = await open({
             directory: false,
             multiple: true,
-            filters: [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
-            title: translations[lang].dialog_btn_file
+            filters: [{ name: "All Files", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
+            title: "Select File"
           });
         } else if (type === "zip-any") {
-          const isFolder = await ask(translations[lang].dialog_zip_ask, {
-            title: translations[lang].dialog_choose,
-            okLabel: translations[lang].dialog_btn_dir,
-            cancelLabel: translations[lang].dialog_btn_file
+          const isFolder = await ask("Do you want to select a folder or a file to compress?", {
+            title: "Choose Option",
+            okLabel: "Select Folder",
+            cancelLabel: "Select File"
           });
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
-            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
-            title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
+            filters: isFolder ? undefined : [{ name: "All Files", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
+            title: isFolder ? "Select Folder" : "Select File"
           });
         } else if (type === "lock-any") {
-          const isFolder = await ask(translations[lang].dialog_lock_ask, {
-            title: translations[lang].dialog_choose,
-            okLabel: translations[lang].dialog_btn_dir,
-            cancelLabel: translations[lang].dialog_btn_file
+          const isFolder = await ask("Do you want to select a folder or a file to lock?", {
+            title: "Choose Option",
+            okLabel: "Select Folder",
+            cancelLabel: "Select File"
           });
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
-            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
-            title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
+            filters: isFolder ? undefined : [{ name: "All Files", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
+            title: isFolder ? "Select Folder" : "Select File"
           });
         } else if (type === "file-zip") {
           selectedPath = await open({
             directory: false,
             multiple: true,
             filters: [{ name: "ZIP", extensions: ["zip"] }],
-            title: translations[lang].dialog_title_zip
+            title: "Select ZIP File"
           });
         } else if (type === "file-zzl") {
           selectedPath = await open({
             directory: false,
             multiple: true,
             filters: [{ name: "ZZL", extensions: ["zzl"] }],
-            title: translations[lang].dialog_title_zzl
+            title: "Select Locked File"
           });
         }
 
@@ -876,7 +654,7 @@ window.addEventListener("DOMContentLoaded", () => {
           await handleSelectedPaths(input, paths, type || "");
         }
       } catch (err) {
-        setOutput(`${translations[currentLanguage].error_prefix}${String(err)}`);
+        setOutput(`Error: ${String(err)}`);
       }
     });
   });
@@ -957,19 +735,15 @@ window.addEventListener("DOMContentLoaded", () => {
         bioLockBtn.disabled = true;
         bioLockBtn.style.opacity = "0.5";
         bioLockBtn.style.cursor = "not-allowed";
-        bioLockBtn.title = currentLanguage === "tr" 
-          ? "Cihazınızda biyometrik doğrulama donanımı bulunamadı." 
-          : "Biometric authentication hardware not found on your device.";
+        bioLockBtn.title = "Biometric authentication hardware not found on your device.";
       }
       
       if (bioUnlockBtn) {
         bioUnlockBtn.disabled = true;
         bioUnlockBtn.style.opacity = "0.5";
         bioUnlockBtn.style.cursor = "not-allowed";
-        bioUnlockBtn.title = currentLanguage === "tr" 
-          ? "Cihazınızda biyometrik doğrulama donanımı bulunamadı." 
-          : "Biometric authentication hardware not found on your device.";
+        bioUnlockBtn.title = "Biometric authentication hardware not found on your device.";
       }
     }
-  }).catch((e) => console.error("Biyometrik durum kontrolü başarısız:", e));
+  }).catch((e) => console.error("Biometric status check failed:", e));
 });

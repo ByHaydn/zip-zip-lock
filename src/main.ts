@@ -48,7 +48,62 @@ function clearPaths(id: string) {
   }
 }
 
-function handleSelectedPaths(input: HTMLInputElement, paths: string[], type: string) {
+function showCustomPrompt(title: string, defaultValue: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const modal = document.querySelector("#custom-prompt-modal") as HTMLElement;
+    const titleEl = document.querySelector("#prompt-title") as HTMLElement;
+    const input = document.querySelector("#prompt-input") as HTMLInputElement;
+    const btnCancel = document.querySelector("#btn-prompt-cancel") as HTMLButtonElement;
+    const btnOk = document.querySelector("#btn-prompt-ok") as HTMLButtonElement;
+
+    if (!modal || !titleEl || !input || !btnCancel || !btnOk) {
+      resolve(null);
+      return;
+    }
+
+    titleEl.textContent = title;
+    input.value = defaultValue;
+    modal.style.display = "flex";
+    input.focus();
+    input.select();
+
+    const cleanup = () => {
+      modal.style.display = "none";
+      // Clone nodes to clear previous event listeners
+      btnOk.replaceWith(btnOk.cloneNode(true));
+      btnCancel.replaceWith(btnCancel.cloneNode(true));
+    };
+
+    // Re-bind click events
+    const newBtnOk = document.querySelector("#btn-prompt-ok") as HTMLButtonElement;
+    const newBtnCancel = document.querySelector("#btn-prompt-cancel") as HTMLButtonElement;
+
+    newBtnOk.addEventListener("click", () => {
+      const val = input.value.trim();
+      cleanup();
+      resolve(val || defaultValue);
+    });
+
+    newBtnCancel.addEventListener("click", () => {
+      cleanup();
+      resolve(null);
+    });
+
+    // Also support Enter/Escape key press
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        newBtnOk.click();
+        input.removeEventListener("keydown", handleKey);
+      } else if (e.key === "Escape") {
+        newBtnCancel.click();
+        input.removeEventListener("keydown", handleKey);
+      }
+    };
+    input.addEventListener("keydown", handleKey);
+  });
+}
+
+async function handleSelectedPaths(input: HTMLInputElement, paths: string[], type: string) {
   if (paths.length > 0) {
     input.setAttribute("data-paths", JSON.stringify(paths));
     if (paths.length > 1) {
@@ -58,7 +113,7 @@ function handleSelectedPaths(input: HTMLInputElement, paths: string[], type: str
       const promptMsg = lang === "tr" 
         ? "Çoklu dosya seçildi. Lütfen oluşturulacak ortak dosya/arşiv için bir isim girin:" 
         : "Multiple files selected. Please enter a name for the output archive/locked file:";
-      let archiveName = prompt(promptMsg, defaultName);
+      let archiveName = await showCustomPrompt(promptMsg, defaultName);
       if (!archiveName) {
         input.removeAttribute("data-paths");
         input.removeAttribute("data-output-path");
@@ -712,7 +767,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
         if (selectedPath) {
           const paths = Array.isArray(selectedPath) ? selectedPath : [selectedPath];
-          handleSelectedPaths(input, paths, type || "");
+          await handleSelectedPaths(input, paths, type || "");
         }
       } catch (err) {
         setOutput(`${translations[currentLanguage].error_prefix}${String(err)}`);
@@ -722,7 +777,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Drag and Drop OS-Interception Listener
   const webview = getCurrentWebviewWindow();
-  webview.onDragDropEvent((event) => {
+  webview.onDragDropEvent(async (event) => {
     if (event.payload.type === "over" || event.payload.type === "drop") {
       const { x, y } = event.payload.position;
       const isMac = navigator.userAgent.includes("Mac OS X");
@@ -746,7 +801,7 @@ window.addEventListener("DOMContentLoaded", () => {
           const dropZone = card.querySelector(".drop-zone") as HTMLElement;
           const type = dropZone ? dropZone.getAttribute("data-type") : "";
           if (input) {
-            handleSelectedPaths(input, paths, type || "");
+            await handleSelectedPaths(input, paths, type || "");
           }
         }
       }

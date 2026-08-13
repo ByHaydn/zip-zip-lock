@@ -177,5 +177,17 @@
         <pre id="output" data-i18n="console_ready">Uygulama hazır. Lütfen bir işlem seçin.</pre>
       </section>
     </main>
+
+    <!-- Custom Modal for Prompt -->
+    <div id="custom-prompt-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <h3 id="prompt-title">Arşiv Adı Girin</h3>
+        <input id="prompt-input" type="text" placeholder="arsiv" />
+        <div class="modal-actions">
+          <button id="btn-prompt-cancel" class="btn-secondary">İptal</button>
+          <button id="btn-prompt-ok" class="btn-primary">Tamam</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

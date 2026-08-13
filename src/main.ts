@@ -800,6 +800,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: false,
             multiple: true,
+            filters: [{ name: "Tüm Dosyalar", extensions: ["*"] }],
             title: translations[lang].dialog_btn_file
           });
         } else if (type === "zip-any") {
@@ -811,6 +812,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
+            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["*"] }],
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "lock-any") {
@@ -822,6 +824,7 @@ window.addEventListener("DOMContentLoaded", () => {
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
+            filters: isFolder ? undefined : [{ name: "Tüm Dosyalar", extensions: ["*"] }],
             title: isFolder ? translations[lang].dialog_btn_dir : translations[lang].dialog_btn_file
           });
         } else if (type === "file-zip") {

@@ -112,19 +112,8 @@ fn get_unique_path(path: PathBuf) -> PathBuf {
     }
 }
 
-fn tag_file(path: &Path, _color_index: u8) {
-    #[cfg(target_os = "macos")]
-    {
-        let path_str = path.to_string_lossy();
-        let script = format!(
-            "tell application \"Finder\" to set label index of file (POSIX file \"{}\" as alias) to {}",
-            path_str, _color_index
-        );
-        let _ = std::process::Command::new("osascript")
-            .arg("-e")
-            .arg(script)
-            .spawn();
-    }
+fn tag_file(_path: &Path, _color_index: u8) {
+    // Disabled to respect user's custom Finder tags
 }
 
 fn set_file_immutable_macos(path: &Path, immutable: bool) {

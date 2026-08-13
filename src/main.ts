@@ -108,32 +108,42 @@ async function handleSelectedPaths(input: HTMLInputElement, paths: string[], typ
     input.setAttribute("data-paths", JSON.stringify(paths));
     if (paths.length > 1) {
       const lang = currentLanguage;
-      const isZip = type === "zip-any" || type === "file-zip" || input.id === "zip-source";
-      const defaultName = isZip ? "arsiv" : "kilitli_dosyalar";
-      const promptMsg = lang === "tr" 
-        ? "Çoklu dosya seçildi. Lütfen oluşturulacak ortak dosya/arşiv için bir isim girin:" 
-        : "Multiple files selected. Please enter a name for the output archive/locked file:";
-      let archiveName = await showCustomPrompt(promptMsg, defaultName);
-      if (!archiveName) {
-        input.removeAttribute("data-paths");
+      const isCreate = type === "zip-any" || type === "lock-any" || type === "file" || input.id === "zip-source" || input.id === "lock-input";
+      
+      if (isCreate) {
+        const isZip = type === "zip-any" || type === "file-zip" || input.id === "zip-source";
+        const defaultName = isZip ? "arsiv" : "kilitli_dosyalar";
+        const promptMsg = lang === "tr" 
+          ? "Çoklu dosya seçildi. Lütfen oluşturulacak ortak dosya/arşiv için bir isim girin:" 
+          : "Multiple files selected. Please enter a name for the output archive/locked file:";
+        let archiveName = await showCustomPrompt(promptMsg, defaultName);
+        if (!archiveName) {
+          input.removeAttribute("data-paths");
+          input.removeAttribute("data-output-path");
+          input.value = "";
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          return;
+        }
+        archiveName = archiveName.trim().replace(/[/\\?%*:|"<>. ]/g, "_");
+        if (!archiveName) archiveName = defaultName;
+        
+        const firstPath = paths[0];
+        const separator = firstPath.includes("\\") ? "\\" : "/";
+        const lastIdx = firstPath.lastIndexOf(separator);
+        const parentDir = lastIdx !== -1 ? firstPath.substring(0, lastIdx) : "";
+        const ext = isZip ? ".zip" : ".zzl";
+        const outputName = `${archiveName}${ext}`;
+        const outputPath = parentDir ? `${parentDir}${separator}${outputName}` : outputName;
+        
+        input.setAttribute("data-output-path", outputPath);
+        input.value = `${paths.length} adet dosya seçildi (${outputName})`;
+      } else {
+        // Unzipping/Unlocking multiple existing files
         input.removeAttribute("data-output-path");
-        input.value = "";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        return;
+        input.value = lang === "tr"
+          ? `${paths.length} adet dosya seçildi`
+          : `${paths.length} files selected`;
       }
-      archiveName = archiveName.trim().replace(/[/\\?%*:|"<>. ]/g, "_");
-      if (!archiveName) archiveName = defaultName;
-      
-      const firstPath = paths[0];
-      const separator = firstPath.includes("\\") ? "\\" : "/";
-      const lastIdx = firstPath.lastIndexOf(separator);
-      const parentDir = lastIdx !== -1 ? firstPath.substring(0, lastIdx) : "";
-      const ext = isZip ? ".zip" : ".zzl";
-      const outputName = `${archiveName}${ext}`;
-      const outputPath = parentDir ? `${parentDir}${separator}${outputName}` : outputName;
-      
-      input.setAttribute("data-output-path", outputPath);
-      input.value = `${paths.length} adet dosya seçildi (${outputName})`;
     } else {
       input.removeAttribute("data-output-path");
       input.value = paths[0];
@@ -439,15 +449,34 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector("#btn-unzip")?.addEventListener("click", () =>
     runButtonAction("#btn-unzip", async () => {
-      const zip_path = val("#unzip-source");
-      const res = await invoke<ApiResponse>("unzip_file", { req: { zip_path, output_dir: "" } });
-      if (res.success) {
-        (document.querySelector("#unzip-source") as HTMLInputElement).value = "";
-        if (res.output_path) {
-          (document.querySelector("#zip-source") as HTMLInputElement).value = res.output_path;
+      const paths = getPaths("#unzip-source");
+      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      
+      let successCount = 0;
+      let failCount = 0;
+      let lastMessage = "";
+      
+      for (const zip_path of paths) {
+        const res = await invoke<ApiResponse>("unzip_file", { req: { zip_path, output_dir: "" } });
+        if (res.success) {
+          successCount++;
+        } else {
+          failCount++;
         }
+        lastMessage = res.message;
       }
-      return `${res.success ? "✅" : "❌"} ${res.message}`;
+      
+      if (successCount > 0) {
+        clearPaths("#unzip-source");
+      }
+      
+      if (paths.length > 1) {
+        return currentLanguage === "tr"
+          ? `✅ ${successCount} adet ZIP başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
+          : `✅ ${successCount} ZIP archives extracted successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+      } else {
+        return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
+      }
     })
   );
 
@@ -487,31 +516,77 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector("#btn-unlock")?.addEventListener("click", () =>
     runButtonAction("#btn-unlock", async () => {
-      const input_path = val("#unlock-input");
+      const paths = getPaths("#unlock-input");
+      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      
       const passphrase = val("#unlock-pass");
       if (!passphrase) return translations[currentLanguage].decrypt_empty_error;
-      const res = await invoke<ApiResponse>("unlock_file", { req: { input_path, output_path: "", passphrase } });
-      if (res.success) {
-        (document.querySelector("#unlock-input") as HTMLInputElement).value = "";
+      
+      let successCount = 0;
+      let failCount = 0;
+      let lastMessage = "";
+      
+      for (const input_path of paths) {
+        const res = await invoke<ApiResponse>("unlock_file", { req: { input_path, output_path: "", passphrase } });
+        if (res.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+        lastMessage = res.message;
+      }
+      
+      if (successCount > 0) {
+        clearPaths("#unlock-input");
         (document.querySelector("#unlock-pass") as HTMLInputElement).value = "";
       }
-      return `${res.success ? "✅" : "❌"} ${res.message}`;
+      
+      if (paths.length > 1) {
+        return currentLanguage === "tr"
+          ? `✅ ${successCount} adet kilit başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
+          : `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+      } else {
+        return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
+      }
     })
   );
 
   document.querySelector("#btn-unlock-bio")?.addEventListener("click", () =>
     runButtonAction("#btn-unlock-bio", async () => {
-      const input_path = val("#unlock-input");
+      const paths = getPaths("#unlock-input");
+      if (paths.length === 0) return translations[currentLanguage].error_prefix + "Hiçbir dosya seçilmedi";
+      
       const bioAuth = await invoke<ApiResponse>("biometric_mock_auth");
       if (!bioAuth.success) {
         return `❌ ${bioAuth.message}`;
       }
-      const res = await invoke<ApiResponse>("unlock_file", { req: { input_path, output_path: "", passphrase: "__TOUCH_ID_SEED__" } });
-      if (res.success) {
-        (document.querySelector("#unlock-input") as HTMLInputElement).value = "";
+      
+      let successCount = 0;
+      let failCount = 0;
+      let lastMessage = "";
+      
+      for (const input_path of paths) {
+        const res = await invoke<ApiResponse>("unlock_file", { req: { input_path, output_path: "", passphrase: "__TOUCH_ID_SEED__" } });
+        if (res.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+        lastMessage = res.message;
+      }
+      
+      if (successCount > 0) {
+        clearPaths("#unlock-input");
         (document.querySelector("#unlock-pass") as HTMLInputElement).value = "";
       }
-      return `${res.success ? "✅" : "❌"} ${res.message}`;
+      
+      if (paths.length > 1) {
+        return currentLanguage === "tr"
+          ? `✅ ${successCount} adet kilit başarıyla açıldı.${failCount > 0 ? ` ❌ ${failCount} adet başarısız.` : ""}`
+          : `✅ ${successCount} files unlocked successfully.${failCount > 0 ? ` ❌ ${failCount} failed.` : ""}`;
+      } else {
+        return `${successCount > 0 ? "✅" : "❌"} ${lastMessage}`;
+      }
     })
   );
 
@@ -752,14 +827,14 @@ window.addEventListener("DOMContentLoaded", () => {
         } else if (type === "file-zip") {
           selectedPath = await open({
             directory: false,
-            multiple: false,
+            multiple: true,
             filters: [{ name: "ZIP", extensions: ["zip"] }],
             title: translations[lang].dialog_title_zip
           });
         } else if (type === "file-zzl") {
           selectedPath = await open({
             directory: false,
-            multiple: false,
+            multiple: true,
             filters: [{ name: "ZZL", extensions: ["zzl"] }],
             title: translations[lang].dialog_title_zzl
           });

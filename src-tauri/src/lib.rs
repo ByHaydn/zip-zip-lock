@@ -597,10 +597,8 @@ fn lock_file_impl(input_paths: &[String], output_path: &str, passphrase: &str) -
     let enc = encrypt_bytes(&data, &resolved_passphrase, is_dir, &uuid_bytes)?;
     fs::write(&out_path, enc)?;
     
-    // Save the file password to the vault ONLY if locked using Touch ID
-    if passphrase == "__TOUCH_ID_SEED__" {
-        let _ = save_file_password_multi(&out_path, &file_uuid_hex, &resolved_passphrase);
-    }
+    // Save the file password to the vault under path and UUID
+    let _ = save_file_password_multi(&out_path, &file_uuid_hex, &resolved_passphrase);
 
     // Lock the zzl file so it cannot be deleted/trashed without auth
     set_file_immutable_macos(&out_path, true);

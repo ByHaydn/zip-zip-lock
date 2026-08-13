@@ -285,7 +285,6 @@ fn create_zip_impl(source_path: &str, output_zip_path: &str) -> Result<String> {
 
     zip.finish()?;
     tag_file(&out_path, 1); // Tag with Orange (index 1)
-    let _ = reveal_in_finder(&out_path);
     Ok(format!("ZIP oluşturuldu: {}", out_path.to_string_lossy()))
 }
 
@@ -338,7 +337,6 @@ fn create_zip_from_files(files: &[String], output_zip_path: &str) -> Result<Stri
 
     zip.finish()?;
     tag_file(&out_path, 1);
-    let _ = reveal_in_finder(&out_path);
     let out_path_str = out_path.to_string_lossy().to_string();
     Ok(format!("ZIP oluşturuldu: {}", out_path_str))
 }
@@ -680,7 +678,9 @@ fn unlock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Re
     }
 
     tag_file(&out_path, 4); // Tag with Blue (index 4) for unlocked files/folders!
-    reveal_in_finder(&out_path);
+    if !is_dir {
+        reveal_in_finder(&out_path);
+    }
 
     // Unlock the zzl file first so it can be deleted
     set_file_immutable_macos(&src, false);
@@ -719,6 +719,7 @@ fn create_zip(req: ZipRequest) -> ApiResponse {
             } else {
                 PathBuf::from(&req.output_zip_path)
             };
+            let _ = reveal_in_finder(&out_zip);
             let out_zip_str = out_zip.to_string_lossy().to_string();
             ApiResponse {
                 success: true,

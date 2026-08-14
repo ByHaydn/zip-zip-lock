@@ -68,9 +68,9 @@ fn zip_path(src_dir: &Path, path: &Path) -> Result<String> {
 
 
 fn reveal_in_finder(path: &Path) {
-    let p = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    let p = path.to_path_buf();
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(150));
+        std::thread::sleep(std::time::Duration::from_millis(400));
         #[cfg(target_os = "macos")]
         {
             let _ = std::process::Command::new("open")

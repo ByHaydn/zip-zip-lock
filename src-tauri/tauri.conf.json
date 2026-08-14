@@ -14,9 +14,8 @@
     "windows": [
       {
         "title": "Zip Zip Lock",
-        "width": 960,
-        "height": 640,
-        "transparent": true
+        "width": 800,
+        "height": 600
       }
     ],
     "security": {

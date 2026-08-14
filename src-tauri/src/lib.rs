@@ -922,18 +922,9 @@ fn biometric_mock_auth() -> ApiResponse {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    use tauri::Manager;
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
-            let window = app.get_webview_window("main").unwrap();
-            #[cfg(target_os = "macos")]
-            {
-                let _ = window_vibrancy::apply_vibrancy(&window, window_vibrancy::NSVisualEffectMaterial::UnderWindowBackground, None, None);
-            }
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             create_zip,
             unzip_file,

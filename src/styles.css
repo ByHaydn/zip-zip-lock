@@ -32,36 +32,45 @@
 
 body {
   font-family: var(--font-sans);
-  background: transparent !important;
+  background-color: var(--bg-deep);
   color: var(--text-main);
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
   overflow: hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(10, 15, 28, 0.95) 0px, var(--bg-deep) 100%);
 }
 
 /* Container Layout */
 .app-container {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(8, 12, 21, 0.4); /* Translucent backing to show OS vibrancy */
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  grid-template-columns: 250px 1fr;
+  width: 100%;
+  max-width: 800px;
+  height: 568px; /* Fits 600px window height perfectly including 16px padding on top and bottom */
+  background: rgba(10, 14, 23, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   overflow: hidden;
   animation: appAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes appAppear {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* Sidebar Styling */
 .sidebar {
-  background: rgba(4, 6, 11, 0.25); /* Translucent sidebar showing frosted glass behind */
+  background: rgba(4, 6, 11, 0.45);
   border-right: 1px solid rgba(255, 255, 255, 0.03);
   padding: 32px 24px;
   display: flex;

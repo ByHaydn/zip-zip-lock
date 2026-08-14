@@ -836,7 +836,7 @@ window.addEventListener("DOMContentLoaded", () => {
     },
     touchid: {
       title: "🧬 Biometric Touch ID",
-      desc: "Lock and unlock files instantly using your fingerprint. When you use Touch ID, the encryption keys are securely handled by your Mac's Secure Enclave. A 12-word recovery phrase can be generated to recover your biometric keychain seed if needed. <strong>Important Note:</strong> Files locked with a manual password are encrypted using that typed password and cannot be unlocked with Touch ID or the recovery phrase. Always keep your manual passwords safe!"
+      desc: "Lock and unlock files instantly using your fingerprint. Touch ID is your ultimate fallback: when active on your device, it can unlock files encrypted with both manual passwords and 12-word recovery seeds. <strong>Recovery Rules:</strong> Files locked with manual passwords can be decrypted using either that specific password or Touch ID. Files locked with 12-word recovery seeds can be decrypted using either the recovery phrase or Touch ID."
     },
     delete: {
       title: "🚫 Accidental Delete Protection",

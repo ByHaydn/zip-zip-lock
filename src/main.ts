@@ -770,6 +770,59 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // RESTYLING TABS & DRAWER INTERACTIVES
+  const zipSegment = document.querySelector("#zip-segment") as HTMLElement;
+  const zipCompressBtn = document.querySelector('#zip-segment [data-tab="compress"]') as HTMLElement;
+  const zipExtractBtn = document.querySelector('#zip-segment [data-tab="extract"]') as HTMLElement;
+  const panelZipCompress = document.querySelector("#panel-zip-compress") as HTMLElement;
+  const panelZipExtract = document.querySelector("#panel-zip-extract") as HTMLElement;
+
+  zipCompressBtn?.addEventListener("click", () => {
+    zipSegment?.classList.remove("right-active");
+    zipCompressBtn.classList.add("active");
+    zipExtractBtn.classList.remove("active");
+    panelZipCompress.classList.remove("hidden");
+    panelZipExtract.classList.add("hidden");
+  });
+
+  zipExtractBtn?.addEventListener("click", () => {
+    zipSegment?.classList.add("right-active");
+    zipExtractBtn.classList.add("active");
+    zipCompressBtn.classList.remove("active");
+    panelZipExtract.classList.remove("hidden");
+    panelZipCompress.classList.add("hidden");
+  });
+
+  const lockSegment = document.querySelector("#lock-segment") as HTMLElement;
+  const lockBtn = document.querySelector('#lock-segment [data-tab="lock"]') as HTMLElement;
+  const unlockBtn = document.querySelector('#lock-segment [data-tab="unlock"]') as HTMLElement;
+  const panelLockLock = document.querySelector("#panel-lock-lock") as HTMLElement;
+  const panelLockUnlock = document.querySelector("#panel-lock-unlock") as HTMLElement;
+
+  lockBtn?.addEventListener("click", () => {
+    lockSegment?.classList.remove("right-active");
+    lockBtn.classList.add("active");
+    unlockBtn.classList.remove("active");
+    panelLockLock.classList.remove("hidden");
+    panelLockUnlock.classList.add("hidden");
+  });
+
+  unlockBtn?.addEventListener("click", () => {
+    lockSegment?.classList.add("right-active");
+    unlockBtn.classList.add("active");
+    lockBtn.classList.remove("active");
+    panelLockUnlock.classList.remove("hidden");
+    panelLockLock.classList.add("hidden");
+  });
+
+  const recoveryDrawer = document.querySelector("#recovery-drawer") as HTMLElement;
+  document.querySelectorAll(".link-toggle-recovery").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      recoveryDrawer?.classList.toggle("expanded");
+    });
+  });
+
   // Check biometric support on startup and disable Touch ID buttons if unsupported
   invoke<BiometricStatus>("biometric_status").then((status) => {
     if (!status.supported) {

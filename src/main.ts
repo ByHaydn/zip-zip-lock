@@ -831,20 +831,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const featureDetails: Record<string, { title: string; desc: string }> = {
     m5: {
-      title: "⚡ Apple Silicon M1-M5 Desteği",
-      desc: "Bu uygulama Apple Silicon (M1, M2, M3, M4 ve M5) işlemcili Mac bilgisayarlar için özel olarak yerel (native) kodla derlenmiştir. Bu sayede Intel emülasyonu (Rosetta) gerektirmeden, Mac'inizin donanım hızlandırmasını doğrudan kullanarak en yüksek hızda ve sıfır gecikmeyle çalışır. Aynı zamanda pilinizi neredeyse hiç harcamaz."
+      title: "⚡ Native M1-M5 Support",
+      desc: "This application is compiled natively for Apple Silicon (M1, M2, M3, M4, and M5) Mac processors. Running natively means it utilizes 100% of your Mac's hardware acceleration, resulting in instant processing speeds with zero delay. It is extremely energy-efficient and consumes virtually no battery life compared to Intel-emulated software."
     },
     touchid: {
-      title: "🧬 Biyometrik Touch ID Güvenliği",
-      desc: "Touch ID parmak izi okuyucunuzu kullanarak dosyalarınızı saniyeler içinde kilitleyebilir ve açabilirsiniz. Şifreleme anahtarları Mac'inizin anakartındaki 'Secure Enclave' (güvenli donanım işlemcisi) ile doğrudan ilişkilendirilir. Eğer Touch ID çalışmazsa veya şifrenizi unutursanız, yedek olarak oluşturduğunuz 12 kelimelik kurtarma parolasını kullanarak kilidi her zaman açabilirsiniz."
+      title: "🧬 Biometric Touch ID",
+      desc: "Lock and unlock files instantly using your fingerprint. When you use Touch ID, the encryption keys are securely handled by your Mac's Secure Enclave. A 12-word recovery phrase can be generated to recover your biometric keychain seed if needed. <strong>Important Note:</strong> Files locked with a manual password are encrypted using that typed password and cannot be unlocked with Touch ID or the recovery phrase. Always keep your manual passwords safe!"
     },
     delete: {
-      title: "🚫 Kazara Silinme Koruması",
-      desc: "Kilitlediğiniz dosyalar veya klasörler macOS işletim sistemi düzeyinde korumaya alınır (chflags kilit bayrağı). Eğer Finder üzerinde kilitli bir .zzl dosyasını yanlışlıkla çöpe sürüklemeye veya silmeye çalışırsanız, macOS işlemi durdurur ve karşınıza 'Bu öğe kilitli, silmek istiyor musunuz?' uyarısı çıkartır. Bu sayede en önemli dosyalarınızın kazayla kaybolması engellenir."
+      title: "🚫 Accidental Delete Protection",
+      desc: "To prevent accidental data loss, locked .zzl archives are protected at the system level using the macOS immutable lock flag (chflags uchg). If you try to drag a locked file to the Trash or overwrite it in Finder, macOS will intervene with a warning: <em>'This item is locked. Do you want to move it to the Trash anyway?'</em>. This acts as a critical safety buffer for your important data."
     },
     aes: {
-      title: "🔒 AES-256-GCM Kriptografi",
-      desc: "Tüm dosyalarınız siber güvenlik endüstrisinin en güvenilir standardı olan AES-256-GCM ile askeri düzeyde şifrelenir. Uygulama tamamen çevrimdışı (offline) çalışır; şifreleriniz veya dosyalarınız hiçbir uzak sunucuya gitmez, internet bağlantısı gerektirmez. Dosyaların güvenliği tamamen yerel olarak sizin kontrolünüzdedir."
+      title: "🔒 AES-256-GCM Encryption",
+      desc: "Your files are encrypted locally using quantum-resistant AES-256-GCM cryptography. The application operates 100% offline; your passwords, recovery keys, and file contents never leave your device. There are no servers, no cloud syncs, and no tracking, ensuring absolute privacy and local data security."
     }
   };
 

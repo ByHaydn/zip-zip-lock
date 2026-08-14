@@ -15,13 +15,13 @@
   --text-muted: #64748b;
   
   /* Premium HSL Gradients */
-  --grad-primary: linear-gradient(135deg, #24c8db 0%, #10b981 100%);
+  --grad-primary: linear-gradient(135deg, #1de5c9 0%, #00b4d8 50%, #3b66f5 100%);
   --grad-secondary: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
   --grad-accent: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   
   --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 25px rgba(6, 182, 212, 0.1);
-  --shadow-glow-hover: 0 0 35px rgba(16, 185, 129, 0.2);
+  --shadow-glow-hover: 0 0 35px rgba(0, 180, 216, 0.2);
 }
 
 * {
@@ -497,13 +497,13 @@ button {
 
 .btn-primary {
   background: var(--grad-primary);
-  color: #022c22;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  color: #031a33; /* Deep navy text for optimal contrast on blue/cyan */
+  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.25);
 }
 
 .btn-primary:hover {
   filter: brightness(1.08);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 180, 216, 0.45);
   transform: translateY(-0.5px);
 }
 
@@ -549,7 +549,7 @@ button {
 }
 
 .btn-primary.fingerprint-btn {
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 12px rgba(0, 180, 216, 0.2);
 }
 
 .btn-secondary.fingerprint-btn {
@@ -559,7 +559,7 @@ button {
 .btn-primary.fingerprint-btn svg {
   width: 20px;
   height: 20px;
-  stroke: #022c22;
+  stroke: #031a33; /* Dark navy for optimal contrast */
 }
 
 .btn-secondary.fingerprint-btn svg {
@@ -577,9 +577,9 @@ button {
 }
 
 @keyframes pulseFingerprint {
-  0% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
-  100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
+  0% { box-shadow: 0 0 12px rgba(0, 180, 216, 0.35); }
+  50% { box-shadow: 0 0 20px rgba(0, 180, 216, 0.65); }
+  100% { box-shadow: 0 0 12px rgba(0, 180, 216, 0.35); }
 }
 
 @keyframes pulseFingerprintSecondary {

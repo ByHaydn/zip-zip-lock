@@ -664,7 +664,7 @@ window.addEventListener("DOMContentLoaded", () => {
           const isFolder = choice === "dir";
           selectedPath = await open({
             directory: isFolder,
-            multiple: !isFolder,
+            multiple: true,
             filters: isFolder ? undefined : [{ name: "All Files", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
             title: isFolder ? "Select Folder" : "Select File"
           });
@@ -674,7 +674,7 @@ window.addEventListener("DOMContentLoaded", () => {
           const isFolder = choice === "dir";
           selectedPath = await open({
             directory: isFolder,
-            multiple: !isFolder,
+            multiple: true,
             filters: isFolder ? undefined : [{ name: "All Files", extensions: ["zip", "zzl", "png", "jpg", "jpeg", "gif", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp3", "mp4", "mov", "avi", "dmg", "pkg", "rar", "7z", "tar", "gz"] }],
             title: isFolder ? "Select Folder" : "Select File"
           });

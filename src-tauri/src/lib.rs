@@ -74,19 +74,19 @@ fn reveal_in_finder(path: &Path) {
         std::thread::sleep(std::time::Duration::from_millis(400));
         #[cfg(target_os = "macos")]
         {
-            println!("[DEBUG] Spawning open -R for: {:?}", p);
-            let status = std::process::Command::new("open")
+            println!("[DEBUG] Spawning /usr/bin/open -R for: {:?}", p);
+            let status = std::process::Command::new("/usr/bin/open")
                 .arg("-R")
                 .arg(&p)
                 .status();
-            println!("[DEBUG] open -R exit status: {:?}", status);
+            println!("[DEBUG] /usr/bin/open -R exit status: {:?}", status);
 
-            println!("[DEBUG] Spawning osascript to activate Finder");
-            let osascript_status = std::process::Command::new("osascript")
+            println!("[DEBUG] Spawning /usr/bin/osascript to activate Finder");
+            let osascript_status = std::process::Command::new("/usr/bin/osascript")
                 .arg("-e")
                 .arg("tell application \"Finder\" to activate")
                 .status();
-            println!("[DEBUG] osascript exit status: {:?}", osascript_status);
+            println!("[DEBUG] /usr/bin/osascript exit status: {:?}", osascript_status);
         }
         #[cfg(target_os = "windows")]
         {
@@ -130,10 +130,11 @@ fn set_file_immutable_macos(path: &Path, immutable: bool) {
     #[cfg(target_os = "macos")]
     {
         let flag = if immutable { "uchg" } else { "nouchg" };
-        let _ = std::process::Command::new("chflags")
+        let status = std::process::Command::new("/usr/bin/chflags")
             .arg(flag)
             .arg(path)
             .status();
+        println!("[DEBUG] set_file_immutable_macos path: {:?} flag: {} status: {:?}", path, flag, status);
     }
 }
 

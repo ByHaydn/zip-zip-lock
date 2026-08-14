@@ -69,18 +69,24 @@ fn zip_path(src_dir: &Path, path: &Path) -> Result<String> {
 
 fn reveal_in_finder(path: &Path) {
     let p = path.to_path_buf();
+    println!("[DEBUG] reveal_in_finder called for path: {:?}", p);
     std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_millis(400));
         #[cfg(target_os = "macos")]
         {
-            let _ = std::process::Command::new("open")
+            println!("[DEBUG] Spawning open -R for: {:?}", p);
+            let status = std::process::Command::new("open")
                 .arg("-R")
                 .arg(&p)
                 .status();
-            let _ = std::process::Command::new("osascript")
+            println!("[DEBUG] open -R exit status: {:?}", status);
+
+            println!("[DEBUG] Spawning osascript to activate Finder");
+            let osascript_status = std::process::Command::new("osascript")
                 .arg("-e")
                 .arg("tell application \"Finder\" to activate")
                 .status();
+            println!("[DEBUG] osascript exit status: {:?}", osascript_status);
         }
         #[cfg(target_os = "windows")]
         {
@@ -334,7 +340,7 @@ fn create_zip_from_files(files: &[String], output_zip_path: &str) -> Result<Stri
     Ok(format!("ZIP oluşturuldu: {}", out_path_str))
 }
 
-fn unzip_impl(zip_path: &str, output_dir: &str) -> Result<(String, PathBuf)> {
+fn unzip_impl(zip_path: &str, output_dir: &str, reveal: bool) -> Result<(String, PathBuf)> {
     let src = PathBuf::from(zip_path);
     if !src.exists() {
         return Err(anyhow!("ZIP dosyası bulunamadı: {}", zip_path));
@@ -440,9 +446,11 @@ fn unzip_impl(zip_path: &str, output_dir: &str) -> Result<(String, PathBuf)> {
         }
     }
 
-    if let Some(path) = first_item {
-        tag_file(&path, 6); // Tag with Green (index 6) for unzipped items!
-        let _ = reveal_in_finder(&path);
+    if reveal {
+        if let Some(path) = first_item {
+            tag_file(&path, 6); // Tag with Green (index 6) for unzipped items!
+            let _ = reveal_in_finder(&path);
+        }
     }
     Ok((format!("ZIP açıldı: {}", output_path.to_string_lossy()), output_path))
 }
@@ -663,7 +671,7 @@ fn unlock_file_impl(input_path: &str, output_path: &str, passphrase: &str) -> Re
         fs::write(&temp_zip, &decrypted_data)?;
         
         let parent_dir = out_path.parent().ok_or_else(|| anyhow!("Üst dizin bulunamadı"))?;
-        let _ = unzip_impl(&temp_zip.to_string_lossy(), &parent_dir.to_string_lossy())?;
+        let _ = unzip_impl(&temp_zip.to_string_lossy(), &parent_dir.to_string_lossy(), false)?;
         
         let _ = fs::remove_file(&temp_zip);
     } else {
@@ -728,7 +736,7 @@ fn create_zip(req: ZipRequest) -> ApiResponse {
 
 #[tauri::command]
 fn unzip_file(req: UnzipRequest) -> ApiResponse {
-    match unzip_impl(&req.zip_path, &req.output_dir) {
+    match unzip_impl(&req.zip_path, &req.output_dir, true) {
         Ok((message, out_path)) => ApiResponse {
             success: true,
             message,
@@ -932,7 +940,7 @@ pub fn run() {
 }
 
 pub fn unzip_headless(zip_path: &str) -> Result<String> {
-    unzip_impl(zip_path, "").map(|(msg, _)| msg)
+    unzip_impl(zip_path, "", false).map(|(msg, _)| msg)
 }
 
 pub fn zip_headless(source_path: &str) -> Result<String> {
@@ -989,7 +997,7 @@ mod tests {
 
         // 2. Test unzipping
         println!("Expected Zip Exists: {}", expected_zip.exists());
-        let res = unzip_impl(&expected_zip.to_string_lossy(), "");
+        let res = unzip_impl(&expected_zip.to_string_lossy(), "", false);
         if let Err(ref e) = res {
             println!("Unzip Error: {:?}", e);
         }
@@ -1016,7 +1024,7 @@ mod tests {
         let file_path = temp_dir.join("secret.txt");
         fs::write(&file_path, b"super secret content").unwrap();
 
-        let lock_res = lock_file_impl(&file_path.to_string_lossy(), "", "password123").unwrap().0;
+        let lock_res = lock_file_impl(&[file_path.to_string_lossy().to_string()], "", "password123").unwrap().0;
         println!("Lock File Result: {}", lock_res);
 
         let locked_file = temp_dir.join("secret.txt.zzl");
@@ -1038,7 +1046,7 @@ mod tests {
         let sub_file = folder_path.join("inner.txt");
         fs::write(&sub_file, b"inside folder content").unwrap();
 
-        let folder_lock_res = lock_file_impl(&folder_path.to_string_lossy(), "", "password123").unwrap().0;
+        let folder_lock_res = lock_file_impl(&[folder_path.to_string_lossy().to_string()], "", "password123").unwrap().0;
         println!("Lock Folder Result: {}", folder_lock_res);
 
         let locked_folder = temp_dir.join("secret_folder.zzl");

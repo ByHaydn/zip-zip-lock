@@ -823,6 +823,46 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Sidebar Feature Click Modal Info Bindings
+  const featureInfoModal = document.querySelector("#feature-info-modal") as HTMLElement;
+  const featureInfoTitle = document.querySelector("#feature-info-title") as HTMLElement;
+  const featureInfoDesc = document.querySelector("#feature-info-desc") as HTMLElement;
+  const featureInfoCloseBtn = document.querySelector("#btn-feature-info-close") as HTMLElement;
+
+  const featureDetails: Record<string, { title: string; desc: string }> = {
+    m5: {
+      title: "⚡ Apple Silicon M1-M5 Desteği",
+      desc: "Bu uygulama Apple Silicon (M1, M2, M3, M4 ve M5) işlemcili Mac bilgisayarlar için özel olarak yerel (native) kodla derlenmiştir. Bu sayede Intel emülasyonu (Rosetta) gerektirmeden, Mac'inizin donanım hızlandırmasını doğrudan kullanarak en yüksek hızda ve sıfır gecikmeyle çalışır. Aynı zamanda pilinizi neredeyse hiç harcamaz."
+    },
+    touchid: {
+      title: "🧬 Biyometrik Touch ID Güvenliği",
+      desc: "Touch ID parmak izi okuyucunuzu kullanarak dosyalarınızı saniyeler içinde kilitleyebilir ve açabilirsiniz. Şifreleme anahtarları Mac'inizin anakartındaki 'Secure Enclave' (güvenli donanım işlemcisi) ile doğrudan ilişkilendirilir. Eğer Touch ID çalışmazsa veya şifrenizi unutursanız, yedek olarak oluşturduğunuz 12 kelimelik kurtarma parolasını kullanarak kilidi her zaman açabilirsiniz."
+    },
+    delete: {
+      title: "🚫 Kazara Silinme Koruması",
+      desc: "Kilitlediğiniz dosyalar veya klasörler macOS işletim sistemi düzeyinde korumaya alınır (chflags kilit bayrağı). Eğer Finder üzerinde kilitli bir .zzl dosyasını yanlışlıkla çöpe sürüklemeye veya silmeye çalışırsanız, macOS işlemi durdurur ve karşınıza 'Bu öğe kilitli, silmek istiyor musunuz?' uyarısı çıkartır. Bu sayede en önemli dosyalarınızın kazayla kaybolması engellenir."
+    },
+    aes: {
+      title: "🔒 AES-256-GCM Kriptografi",
+      desc: "Tüm dosyalarınız siber güvenlik endüstrisinin en güvenilir standardı olan AES-256-GCM ile askeri düzeyde şifrelenir. Uygulama tamamen çevrimdışı (offline) çalışır; şifreleriniz veya dosyalarınız hiçbir uzak sunucuya gitmez, internet bağlantısı gerektirmez. Dosyaların güvenliği tamamen yerel olarak sizin kontrolünüzdedir."
+    }
+  };
+
+  document.querySelectorAll(".feature-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const featKey = item.getAttribute("data-feature");
+      if (featKey && featureDetails[featKey]) {
+        if (featureInfoTitle) featureInfoTitle.innerHTML = featureDetails[featKey].title;
+        if (featureInfoDesc) featureInfoDesc.innerHTML = featureDetails[featKey].desc;
+        if (featureInfoModal) featureInfoModal.style.display = "flex";
+      }
+    });
+  });
+
+  featureInfoCloseBtn?.addEventListener("click", () => {
+    if (featureInfoModal) featureInfoModal.style.display = "none";
+  });
+
   // Check biometric support on startup and disable Touch ID buttons if unsupported
   invoke<BiometricStatus>("biometric_status").then((status) => {
     if (!status.supported) {

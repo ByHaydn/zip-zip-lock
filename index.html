@@ -29,28 +29,28 @@
           </div>
           <p class="tagline">Digital file pocket • Secure ZIP and Lock System</p>
           <ul class="feature-list">
-            <li>
+            <li class="feature-item" data-feature="m5">
               <span class="feat-icon">⚡</span>
               <div>
                 <strong>Native M1-M5 Support</strong>
                 <p>Fully optimized for Apple Silicon natively</p>
               </div>
             </li>
-            <li>
+            <li class="feature-item" data-feature="touchid">
               <span class="feat-icon">🧬</span>
               <div>
                 <strong>Biometric Touch ID</strong>
                 <p>Instant fingerprint lock and safety backup key</p>
               </div>
             </li>
-            <li>
+            <li class="feature-item" data-feature="delete">
               <span class="feat-icon">🚫</span>
               <div>
                 <strong>Accidental Delete Protection</strong>
                 <p>System-level safety warning system</p>
               </div>
             </li>
-            <li>
+            <li class="feature-item" data-feature="aes">
               <span class="feat-icon">🔒</span>
               <div>
                 <strong>AES-256-GCM Privacy</strong>
@@ -275,6 +275,15 @@
           <button id="btn-choose-dir" class="btn-primary" style="flex: 1; padding: 10px; font-size: 13px; white-space: nowrap; background: #0284c7;">Select Folder</button>
         </div>
         <button id="btn-choose-cancel" class="btn-secondary" style="margin-top: 16px; width: 100%; padding: 8px; box-sizing: border-box;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Custom Modal for Showing Feature Explanations -->
+    <div id="feature-info-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-content" style="width: 360px; text-align: left;">
+        <h3 id="feature-info-title" style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">Feature Details</h3>
+        <p id="feature-info-desc" style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 24px;"></p>
+        <button id="btn-feature-info-close" class="btn-primary" style="width: 100%; padding: 10px; font-size: 13px;">Got It</button>
       </div>
     </div>
   </body>

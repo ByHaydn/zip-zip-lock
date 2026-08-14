@@ -74,8 +74,13 @@ function showCustomPrompt(title: string, defaultValue: string): Promise<string |
     input.focus();
     input.select();
 
+    let handleKey: (e: KeyboardEvent) => void;
+
     const cleanup = () => {
       modal.style.display = "none";
+      if (handleKey) {
+        input.removeEventListener("keydown", handleKey);
+      }
       // Clone nodes to clear previous event listeners
       btnOk.replaceWith(btnOk.cloneNode(true));
       btnCancel.replaceWith(btnCancel.cloneNode(true));
@@ -97,13 +102,11 @@ function showCustomPrompt(title: string, defaultValue: string): Promise<string |
     });
 
     // Also support Enter/Escape key press
-    const handleKey = (e: KeyboardEvent) => {
+    handleKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         newBtnOk.click();
-        input.removeEventListener("keydown", handleKey);
       } else if (e.key === "Escape") {
         newBtnCancel.click();
-        input.removeEventListener("keydown", handleKey);
       }
     };
     input.addEventListener("keydown", handleKey);

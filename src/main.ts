@@ -497,41 +497,45 @@ window.addEventListener("DOMContentLoaded", () => {
       if (!phrase) return "❌ Error: Seed words to verify cannot be empty!";
       const res = await invoke<ApiResponse>("verify_seed_phrase", { req: { phrase } });
       if (res.success) {
+        // Clear textarea inside modal
         (document.querySelector("#seed-input") as HTMLTextAreaElement).value = "";
+        
+        // Fill verified seed into both password inputs
+        const lockPass = document.querySelector("#lock-pass") as HTMLInputElement;
+        if (lockPass) {
+          lockPass.value = phrase;
+          lockPass.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        const unlockPass = document.querySelector("#unlock-pass") as HTMLInputElement;
+        if (unlockPass) {
+          unlockPass.value = phrase;
+          unlockPass.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        
+        // Copy to clipboard
+        await copyToClipboard(phrase);
+        
+        // Close modal
+        const recoveryModal = document.querySelector("#recovery-modal") as HTMLElement;
+        if (recoveryModal) {
+          recoveryModal.style.display = "none";
+        }
       }
-      return res.success ? "Saved and Verified! ✅" : `❌ ${res.message}`;
+      return res.success ? "Saved and Verified! ✅ Applied as your encryption password." : `❌ ${res.message}`;
     })
   );
 
   document.querySelector("#link-generate-pass")?.addEventListener("click", (e) => {
     e.preventDefault();
-    runButtonAction("#link-generate-pass", async () => {
-      const res = await invoke<ApiResponse>("generate_seed_phrase");
-      if (res.success) {
-        const passInput = document.querySelector("#lock-pass") as HTMLInputElement;
-        if (passInput) {
-          passInput.type = "password";
-          passInput.value = res.message;
-          passInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-          // Visual indicator to prompt manual copy due to async clipboard rules
-          const parent = passInput.parentElement;
-          const copyBtn = parent?.querySelector(".copy-btn") as HTMLButtonElement;
-          if (copyBtn) {
-            copyBtn.style.color = "#34d399";
-            copyBtn.style.transform = "scale(1.3)";
-            copyBtn.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-            setTimeout(() => {
-              copyBtn.style.color = "#9ca3af";
-              copyBtn.style.transform = "";
-            }, 2000);
-          }
-        }
-        await copyToClipboard(res.message);
-        return "Password Generated! 🔑 Click the copy icon (📋) next to the box to copy it.";
-      }
-      return `❌ ${res.message}`;
-    });
+    const recoveryModal = document.querySelector("#recovery-modal") as HTMLElement;
+    if (recoveryModal) {
+      recoveryModal.style.display = "flex";
+    }
+    // Automatically trigger the generate words button click inside the modal
+    const generateBtn = document.querySelector("#btn-generate-seed") as HTMLButtonElement;
+    if (generateBtn) {
+      generateBtn.click();
+    }
   });
 
   // Password Visibility Toggle Listener

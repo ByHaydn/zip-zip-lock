@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { open, ask } from "@tauri-apps/plugin-dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 // Types matching Rust API
@@ -107,6 +107,52 @@ function showCustomPrompt(title: string, defaultValue: string): Promise<string |
       }
     };
     input.addEventListener("keydown", handleKey);
+  });
+}
+
+function showCustomChooseModal(title: string, desc: string): Promise<"file" | "dir" | null> {
+  return new Promise((resolve) => {
+    const modal = document.querySelector("#custom-choose-modal") as HTMLElement;
+    const titleEl = document.querySelector("#choose-title") as HTMLElement;
+    const descEl = document.querySelector("#choose-desc") as HTMLElement;
+    const btnFile = document.querySelector("#btn-choose-file") as HTMLButtonElement;
+    const btnDir = document.querySelector("#btn-choose-dir") as HTMLButtonElement;
+    const btnCancel = document.querySelector("#btn-choose-cancel") as HTMLButtonElement;
+
+    if (!modal || !titleEl || !descEl || !btnFile || !btnDir || !btnCancel) {
+      resolve(null);
+      return;
+    }
+
+    titleEl.textContent = title;
+    descEl.textContent = desc;
+    modal.style.display = "flex";
+
+    const cleanup = () => {
+      modal.style.display = "none";
+      btnFile.replaceWith(btnFile.cloneNode(true));
+      btnDir.replaceWith(btnDir.cloneNode(true));
+      btnCancel.replaceWith(btnCancel.cloneNode(true));
+    };
+
+    const newBtnFile = document.querySelector("#btn-choose-file") as HTMLButtonElement;
+    const newBtnDir = document.querySelector("#btn-choose-dir") as HTMLButtonElement;
+    const newBtnCancel = document.querySelector("#btn-choose-cancel") as HTMLButtonElement;
+
+    newBtnFile.addEventListener("click", () => {
+      cleanup();
+      resolve("file");
+    });
+
+    newBtnDir.addEventListener("click", () => {
+      cleanup();
+      resolve("dir");
+    });
+
+    newBtnCancel.addEventListener("click", () => {
+      cleanup();
+      resolve(null);
+    });
   });
 }
 
@@ -610,11 +656,9 @@ window.addEventListener("DOMContentLoaded", () => {
             title: "Select File"
           });
         } else if (type === "zip-any") {
-          const isFolder = await ask("Do you want to select a folder or a file to compress?", {
-            title: "Choose Option",
-            okLabel: "Select Folder",
-            cancelLabel: "Select File"
-          });
+          const choice = await showCustomChooseModal("Choose Option", "Do you want to select a folder or files to compress?");
+          if (!choice) return;
+          const isFolder = choice === "dir";
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,
@@ -622,11 +666,9 @@ window.addEventListener("DOMContentLoaded", () => {
             title: isFolder ? "Select Folder" : "Select File"
           });
         } else if (type === "lock-any") {
-          const isFolder = await ask("Do you want to select a folder or a file to lock?", {
-            title: "Choose Option",
-            okLabel: "Select Folder",
-            cancelLabel: "Select File"
-          });
+          const choice = await showCustomChooseModal("Choose Option", "Do you want to select a folder or files to lock?");
+          if (!choice) return;
+          const isFolder = choice === "dir";
           selectedPath = await open({
             directory: isFolder,
             multiple: !isFolder,

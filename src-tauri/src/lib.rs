@@ -238,10 +238,10 @@ fn create_zip_impl(source_path: &str, output_zip_path: &str) -> Result<String> {
     out_path = get_unique_path(out_path);
 
     let out_file = File::create(&out_path)?;
-    let mut zip = ZipWriter::new(out_file);
+    let mut zip = ZipWriter::new(std::io::BufWriter::new(out_file));
     let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::Deflated)
-        .compression_level(Some(9))
+        .compression_level(Some(5))
         .unix_permissions(0o755);
 
     if src.is_file() {
@@ -285,10 +285,10 @@ fn create_zip_from_files(files: &[String], output_zip_path: &str) -> Result<Stri
     let out_path = get_unique_path(out_path);
 
     let out_file = File::create(&out_path)?;
-    let mut zip = ZipWriter::new(out_file);
+    let mut zip = ZipWriter::new(std::io::BufWriter::new(out_file));
     let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::Deflated)
-        .compression_level(Some(9))
+        .compression_level(Some(5))
         .unix_permissions(0o755);
 
     for path_str in files {

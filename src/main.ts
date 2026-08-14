@@ -815,12 +815,17 @@ window.addEventListener("DOMContentLoaded", () => {
     panelLockLock.classList.add("hidden");
   });
 
-  const recoveryDrawer = document.querySelector("#recovery-drawer") as HTMLElement;
+  const recoveryModal = document.querySelector("#recovery-modal") as HTMLElement;
+  const recoveryModalCloseBtn = document.querySelector("#btn-recovery-modal-close") as HTMLElement;
   document.querySelectorAll(".link-toggle-recovery").forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
-      recoveryDrawer?.classList.toggle("expanded");
+      if (recoveryModal) recoveryModal.style.display = "flex";
     });
+  });
+
+  recoveryModalCloseBtn?.addEventListener("click", () => {
+    if (recoveryModal) recoveryModal.style.display = "none";
   });
 
   // Sidebar Feature Click Modal Info Bindings
@@ -836,7 +841,7 @@ window.addEventListener("DOMContentLoaded", () => {
     },
     touchid: {
       title: "🧬 Biometric Touch ID",
-      desc: "Lock and unlock files instantly using your fingerprint. Touch ID is your ultimate fallback: when active on your device, it can unlock files encrypted with both manual passwords and 12-word recovery seeds. <strong>Recovery Rules:</strong> Files locked with manual passwords can be decrypted using either that specific password or Touch ID. Files locked with 12-word recovery seeds can be decrypted using either the recovery phrase or Touch ID."
+      desc: "Lock and unlock files instantly using your fingerprint. Touch ID acts as a local convenience shortcut on this Mac. <strong>Critical Security Warning:</strong> Touch ID only works locally on this machine. If you move your locked (.zzl) files to another computer, upload them to cloud storage (like Google Drive), or if your fingerprint sensor fails, you <em>must</em> use your original manual password or 12-word recovery seed to decrypt them. Always write down and securely back up your passwords and recovery seeds!"
     },
     delete: {
       title: "🚫 Accidental Delete Protection",

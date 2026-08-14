@@ -207,40 +207,7 @@
               </div>
             </div>
             
-            <!-- Collapsible Recovery Phrase Section -->
-            <div class="recovery-drawer" id="recovery-drawer">
-              <div class="drawer-header">
-                <h3>BIP39 Recovery Phrase Vault</h3>
-              </div>
-              <div class="drawer-body">
-                <p class="drawer-desc">Generate or input your 12-word seed phrase to manage your local hardware keys.</p>
-                <div class="textarea-wrapper">
-                  <textarea id="seed-input" placeholder="Type 12 words separated by spaces or generate seed words..." rows="2"></textarea>
-                  <div class="textarea-actions">
-                    <button type="button" class="copy-btn" data-target="#seed-input" title="Copy">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
-                    <button type="button" id="toggle-seed-visibility" title="Show/Hide">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="eye-icon" style="pointer-events: none;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                  </div>
-                </div>
-                <div class="btn-row" style="margin-top: 10px;">
-                  <button id="btn-generate-seed" class="btn-outline">Generate Words</button>
-                  <button id="btn-verify-seed" class="btn-primary">Save / Verify</button>
-                </div>
-                
-                <!-- Hidden Diagnostics for Biometric Protection -->
-                <div class="drawer-diagnostics">
-                  <span>Biometric Diagnostics:</span>
-                  <div class="btn-row">
-                    <button id="btn-bio-status" class="btn-outline">Sys Check</button>
-                    <button id="btn-bio-auth" class="btn-primary">Mock Auth</button>
-                  </div>
-                </div>
-              </div>
             </div>
-            
           </div>
         </section>
 
@@ -289,6 +256,45 @@
         <h3 id="feature-info-title" style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">Feature Details</h3>
         <p id="feature-info-desc" style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 24px;"></p>
         <button id="btn-feature-info-close" class="btn-primary" style="width: 100%; padding: 10px; font-size: 13px;">Got It</button>
+      </div>
+    </div>
+
+    <!-- BIP39 Recovery Phrase Modal -->
+    <div id="recovery-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-content" style="width: 420px; text-align: left;">
+        <h3 style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          🔑 BIP39 Recovery Phrase Vault
+        </h3>
+        <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
+          Generate or input your 12-word seed phrase to manage your local hardware keys.
+        </p>
+        
+        <div class="textarea-wrapper" style="position: relative; margin-bottom: 16px;">
+          <textarea id="seed-input" placeholder="Type 12 words separated by spaces or generate seed words..." rows="3" style="width: 100%; min-height: 70px; background: rgba(3, 5, 9, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; color: #f8fafc; padding: 10px; font-size: 12px; font-family: monospace; resize: none; box-sizing: border-box; line-height: 1.5;"></textarea>
+          <div class="textarea-actions" style="position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; z-index: 10;">
+            <button type="button" class="copy-btn" data-target="#seed-input" title="Copy" style="background: rgba(15, 23, 42, 0.6); color: #94a3b8; border: none; padding: 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <button type="button" id="toggle-seed-visibility" title="Show/Hide" style="background: rgba(15, 23, 42, 0.6); color: #94a3b8; border: none; padding: 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="eye-icon" style="pointer-events: none;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+          <button id="btn-generate-seed" class="btn-outline" style="flex: 1; padding: 10px; font-size: 13px; cursor: pointer; border-radius: 8px;">Generate Words</button>
+          <button id="btn-verify-seed" class="btn-primary" style="flex: 1; padding: 10px; font-size: 13px; cursor: pointer; border-radius: 8px;">Save / Verify</button>
+        </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; margin-bottom: 20px;">
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Biometric Diagnostics:</span>
+          <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <button id="btn-bio-status" class="btn-outline" style="flex: 1; padding: 8px; font-size: 12px; cursor: pointer; border-radius: 6px;">Sys Check</button>
+            <button id="btn-bio-auth" class="btn-primary" style="flex: 1; padding: 8px; font-size: 12px; background: #0284c7; cursor: pointer; border-radius: 6px;">Mock Auth</button>
+          </div>
+        </div>
+        
+        <button id="btn-recovery-modal-close" class="btn-secondary" style="width: 100%; padding: 10px; font-size: 13px; cursor: pointer; border-radius: 8px;">Close</button>
       </div>
     </div>
   </body>

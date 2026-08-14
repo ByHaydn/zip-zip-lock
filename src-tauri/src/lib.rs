@@ -77,6 +77,10 @@ fn reveal_in_finder(path: &Path) {
                 .arg("-R")
                 .arg(&p)
                 .status();
+            let _ = std::process::Command::new("osascript")
+                .arg("-e")
+                .arg("tell application \"Finder\" to activate")
+                .status();
         }
         #[cfg(target_os = "windows")]
         {
